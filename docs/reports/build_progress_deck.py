@@ -175,7 +175,7 @@ textbox(s, 1.0, 5.75, 11.3, 0.9, [
 ], space_after=3)
 
 textbox(s, 1.0, H - 0.75, 11.3, 0.3,
-        [("Phase 1 complete  ·  Phase 2 in progress  ·  114 automated tests passing",
+        [("Phase 1 complete  ·  Phase 2 in progress  ·  117 automated tests passing",
           12, False, LBLUE)])
 
 # ===================================================== 2 · where the project is
@@ -312,7 +312,7 @@ table(s, 0.6, 2.05, 12.1, [
      "one automatic repair round, five sample prompts", "67"],
     ["4", "Developer agent and sandbox",
      "Complete multi-file output, placeholder rejection, subprocess sandbox "
-     "with timeout and path containment, command-line interface", "114"],
+     "with timeout and path containment, command-line interface", "117"],
 ], [0.6, 2.9, 7.2, 0.8], size=12.5, row_h=0.84)
 
 textbox(s, 0.6, 6.15, 12.1, 0.8, [
@@ -357,7 +357,7 @@ table(s, 6.8, 4.85, 5.9, [
 ], [4.0, 1.9], size=12.5, row_h=0.44)
 
 textbox(s, 0.6, 6.5, 12.1, 0.4, [
-    ("114 automated tests, no API key required, zero cost per run.",
+    ("117 automated tests, green on Python 3.11, 3.12 and 3.13. No API key required, zero cost per run.",
      14, True, GREEN)])
 footer(s, 5)
 
@@ -448,7 +448,7 @@ textbox(s, 0.6, 1.4, 12.1, 0.4, [
 
 STEPS = [
     ("pytest -q",
-     "Runs the full suite: 114 tests in about eight seconds."),
+     "Runs the full suite: 117 tests in about four seconds."),
     ("python -m mawe.cli \"Build a terminal snake game\" --verbose",
      "Watch the pipeline live: spec written, code rejected on a named criterion, "
      "fixed, approved."),

@@ -25,7 +25,7 @@ tests prove.
 
 ## 2. What to run, in order
 
-### A. Prove the whole thing works — 114 tests, ~8 seconds
+### A. Prove the whole thing works — 117 tests, ~8 seconds
 
 ```bash
 pytest -q
