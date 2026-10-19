@@ -102,6 +102,7 @@ against real APIs with hidden tests.
 
 ## Documentation
 
+- [`docs/DEMO-GUIDE.md`](docs/DEMO-GUIDE.md) — **how to demo this**: what to run, in what order, and what each command proves
 - [`docs/architecture.md`](docs/architecture.md) — layers, state graph, agent contracts, loop prevention
 - [`docs/MAWE-CONTEXT.md`](docs/MAWE-CONTEXT.md) — full proposal content
 - [`docs/poster/`](docs/poster) — URC conference poster (48×36)

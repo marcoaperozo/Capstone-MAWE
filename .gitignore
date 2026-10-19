@@ -12,3 +12,6 @@ runs/
 .vscode/
 .idea/
 ~$*
+
+# scratch copies from earlier sessions, kept locally only
+_archive/
