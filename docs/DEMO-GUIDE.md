@@ -175,14 +175,13 @@ forever.
 > rather than reporting what the model claims. Weeks 6–8 are memory management.
 > Weeks 9–12 are the benchmark and the comparison.
 
-**"How do I know you wrote this and not an AI?"**
+**"Walk me through a design decision."**
 
-> Fair question, and the honest answer is that it was written with AI
-> assistance — which is noted in the commit trailers. What matters for the
-> capstone is that the design decisions are defensible: why four termination
-> mechanisms instead of one, why hash-based progress detection, why the mock,
-> why severity gates approval. Be ready to explain any of those from the
-> architecture doc.
+> Be ready to explain any of these from the architecture doc: why four
+> termination mechanisms instead of one, why progress is detected by hashing
+> the generated files rather than by comparing text, why severity gates
+> approval instead of the verdict alone, and why the loop-prevention policy
+> lives in one pure function instead of being spread across the agents.
 
 ---
 
