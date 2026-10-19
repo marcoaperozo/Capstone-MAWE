@@ -27,6 +27,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -e .
 
       - name: Run test suite
         # No API key needed: the suite runs against the mock provider.
@@ -39,3 +40,9 @@ jobs:
 
       - name: Week 3 milestone - PM specs on 5 sample prompts
         run: python scripts/week3_spec_check.py
+
+      - name: Week 4 milestone - generated code actually runs
+        run: python scripts/week4_dev_check.py
+
+      - name: CLI smoke test
+        run: python -m mawe.cli "Build a terminal snake game" --no-sandbox

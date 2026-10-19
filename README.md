@@ -31,6 +31,7 @@ model — and what does it cost in tokens and time?**
 git clone <this repo>
 cd MAWE-Capstone
 pip install -r requirements.txt
+pip install -e .
 pytest
 ```
 
@@ -43,10 +44,12 @@ Run the pipeline end to end:
 python -m mawe.cli "Build a terminal snake game"
 ```
 
-Or the milestone demo that exercises all three termination paths:
+Milestone checks — each one is a measured claim, not an assertion:
 
 ```bash
-python scripts/m1_demo.py
+python scripts/m1_demo.py           # all three termination paths fire
+python scripts/week3_spec_check.py  # PM produces valid specs on 5 prompts
+python scripts/week4_dev_check.py   # generated code is written and executed
 ```
 
 ## Project status
@@ -54,7 +57,7 @@ python scripts/m1_demo.py
 | Phase | Weeks | Deliverable | Status |
 |---|---|---|---|
 | 1. Setup & prototyping | 1–2 | Repo, CI, database schema, two-agent pipeline on a LangGraph state graph | **done** |
-| 2. Role implementation | 3–5 | Product Manager, Developer and Reviewer agents with typed hand-offs | **PM + Developer done**, Reviewer next |
+| 2. Role implementation | 3–5 | Product Manager, Developer and Reviewer agents with typed hand-offs | **PM + Developer done** (Weeks 3–4), Reviewer is Week 5 |
 | 3. Memory & state | 6–8 | Context summarisation, token budget | planned |
 | 4. Testing & evaluation | 9–12 | Benchmark suite, single-model baseline, final report | planned |
 
