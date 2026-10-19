@@ -34,5 +34,8 @@ jobs:
           MAWE_PROVIDER: mock
         run: pytest -v
 
-      - name: Smoke-test the M1 demo
+      - name: Week 2 milestone - M1 pipeline demo
         run: python scripts/m1_demo.py
+
+      - name: Week 3 milestone - PM specs on 5 sample prompts
+        run: python scripts/week3_spec_check.py

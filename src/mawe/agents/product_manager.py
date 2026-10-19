@@ -140,17 +140,13 @@ class ProductManagerAgent(Agent):
                     "spec_json": asdict(spec),
                     "acceptance_criteria": spec.acceptance_criteria,
                     "language": spec.language,
-                    **self._usage_update(state),
                 }
 
             attempts += 1
             if attempts > self.MAX_REPAIR_ATTEMPTS:
                 errors.append("product manager could not produce a valid "
                               "specification: " + "; ".join(problems))
-                return {
-                    "errors": list(state.get("errors", [])) + errors,
-                    **self._usage_update(state),
-                }
+                return {"errors": list(state.get("errors", [])) + errors}
 
             # one repair round: show the model exactly what was wrong
             user_prompt = (
@@ -158,6 +154,3 @@ class ProductManagerAgent(Agent):
                 f"Your previous answer violated the contract:\n"
                 + "\n".join(f"- {p}" for p in problems)
                 + "\n\nReturn corrected JSON only.")
-
-    def _usage_update(self, state: Dict[str, Any]) -> Dict[str, Any]:
-        return {}
