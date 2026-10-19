@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mawe"
+version = "0.4.0"
+description = "Multi-Agent AI Workflow Engine - simulating an autonomous software development team"
+requires-python = ">=3.11"
+authors = [
+    { name = "Marco Perozo" },
+    { name = "Gabriel Marte" },
+    { name = "Lewdy Aquino" },
+    { name = "Alvin Almonte" },
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
