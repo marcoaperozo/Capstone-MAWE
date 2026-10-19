@@ -11,7 +11,7 @@ import hashlib
 from contextlib import contextmanager
 from typing import Iterator, Optional
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import Session, sessionmaker
 
 from .models import (
@@ -30,9 +30,41 @@ from .models import (
 DEFAULT_URL = "sqlite:///mawe.db"
 
 
+class SchemaMismatchError(RuntimeError):
+    """The target database already holds tables that are not this schema.
+
+    `create_all` silently skips a table that already exists, so without this
+    check an incompatible database produces a confusing error at the first
+    INSERT instead of at connection time.  That is exactly what happens when
+    the standalone prototype in scripts/ and the engine are pointed at the
+    same file.
+    """
+
+
+def check_schema(engine) -> None:
+    """Fail fast if an existing database is missing columns this schema needs."""
+    inspector = inspect(engine)
+    present = set(inspector.get_table_names())
+
+    for name, table in Base.metadata.tables.items():
+        if name not in present:
+            continue
+        existing_columns = {c["name"] for c in inspector.get_columns(name)}
+        missing = {c.name for c in table.columns} - existing_columns
+        if missing:
+            raise SchemaMismatchError(
+                f"the database at {engine.url!r} already has a {name!r} table "
+                f"that is missing {sorted(missing)}. It was most likely created "
+                f"by a different tool - the standalone demo in scripts/ keeps "
+                f"its own schema. Delete that file or point this run at another "
+                f"database with --db."
+            )
+
+
 def make_engine(url: str = DEFAULT_URL, echo: bool = False):
     connect_args = {"check_same_thread": False} if url.startswith("sqlite") else {}
     engine = create_engine(url, echo=echo, future=True, connect_args=connect_args)
+    check_schema(engine)
     Base.metadata.create_all(engine)
     return engine
 

@@ -21,7 +21,9 @@ import sqlite3
 import textwrap
 import time
 
-DB_PATH = "mawe.db"
+# This standalone prototype keeps its own simpler schema, so it must not
+# share a file with the engine in src/mawe (see db.repository.check_schema).
+DB_PATH = "m1_demo.db"
 MAX_ITERATIONS = 5
 
 # --------------------------------------------------------------------------

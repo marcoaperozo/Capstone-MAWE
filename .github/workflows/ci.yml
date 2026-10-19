@@ -8,17 +8,17 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -45,4 +45,4 @@ jobs:
         run: python scripts/week4_dev_check.py
 
       - name: CLI smoke test
-        run: python -m mawe.cli "Build a terminal snake game" --no-sandbox
+        run: python -m mawe.cli "Build a terminal snake game" --no-sandbox --db sqlite:///ci-smoke.db
