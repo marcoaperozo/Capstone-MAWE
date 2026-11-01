@@ -8,7 +8,10 @@ import pytest
 from mawe.config import Settings
 from mawe.engine import Engine
 from mawe.graph import run_workflow
-from mawe.llm import MockProvider, picky_reviewer_script, stuck_developer_script
+from mawe.llm import (
+    MockProvider, oscillating_developer_script, picky_reviewer_script,
+    stuck_developer_script, varied_reviewer_script,
+)
 
 
 @pytest.fixture()
@@ -46,9 +49,29 @@ def test_stuck_developer_exits_on_no_progress(settings):
     assert any("no_progress" in w for w in state["warnings"])
 
 
-def test_picky_reviewer_stops_at_the_cap(settings):
+def test_repeated_complaint_exits_before_the_cap(settings):
+    """The reviewer keeps filing the identical issue while the developer keeps
+    editing. Repeated-issue detection catches it two rounds before the cap."""
     state = run_workflow("Build a terminal snake game",
                          MockProvider(picky_reviewer_script()),
+                         settings=settings)
+    assert state["termination_reason"] == "repeated_issues"
+    assert state["iteration"] == 3 < settings.max_iterations
+
+
+def test_oscillating_developer_is_caught(settings):
+    """A developer flip-flopping between two versions it already tried."""
+    state = run_workflow("Build a terminal snake game",
+                         MockProvider(oscillating_developer_script()),
+                         settings=settings)
+    assert state["termination_reason"] == "oscillation"
+    assert state["iteration"] < settings.max_iterations
+
+
+def test_picky_reviewer_stops_at_the_cap(settings):
+    """Nothing repeats, so the hard cap is the only backstop left."""
+    state = run_workflow("Build a terminal snake game",
+                         MockProvider(varied_reviewer_script()),
                          settings=settings)
     assert state["termination_reason"] == "iteration_cap"
     assert state["iteration"] == settings.max_iterations
@@ -58,7 +81,7 @@ def test_picky_reviewer_stops_at_the_cap(settings):
 def test_cap_is_respected_exactly(cap):
     settings = Settings(max_iterations=cap, sandbox_timeout_s=0)
     state = run_workflow("Build a terminal snake game",
-                         MockProvider(picky_reviewer_script()),
+                         MockProvider(varied_reviewer_script()),
                          settings=settings)
     assert state["iteration"] == cap
     assert state["termination_reason"] == "iteration_cap"
@@ -67,7 +90,7 @@ def test_cap_is_respected_exactly(cap):
 def test_a_finalized_run_always_returns_the_best_code(settings):
     """Exiting without approval must still hand back something runnable."""
     state = run_workflow("Build a terminal snake game",
-                         MockProvider(picky_reviewer_script()),
+                         MockProvider(varied_reviewer_script()),
                          settings=settings)
     assert state["files"], "finalize_with_warnings must still return files"
     assert state["files"][0]["content"].strip()

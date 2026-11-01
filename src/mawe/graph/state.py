@@ -40,6 +40,7 @@ class WorkflowState(TypedDict, total=False):
     issues: List[str]
     tests_passed: int
     tests_failed: int
+    issue_history: List[str]
 
     # -- outcome -----------------------------------------------------------
     status: str
@@ -61,6 +62,7 @@ def initial_state(prompt: str, max_iterations: int = 5,
         files=[],
         acceptance_criteria=[],
         issues=[],
+        issue_history=[],
         warnings=[],
         errors=[],
         tests_passed=0,

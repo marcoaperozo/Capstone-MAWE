@@ -23,6 +23,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from .base import Agent
+from ..graph.policy import issue_signature
 from .checks import parse_checks, run_checks, summarise
 from .parsing import ParseError, as_str_list, extract_json
 from .prompts import REVIEWER
@@ -133,6 +134,8 @@ class ReviewerAgent(Agent):
             data = extract_json(raw)
         except ParseError as exc:
             update = self._fallback_review(evidence, exc)
+            update["issue_history"] = list(state.get("issue_history", [])) + [
+                issue_signature(update.get("issues", []))]
             update["warnings"] = warnings + [
                 "reviewer returned malformed output; the verdict came from "
                 "the execution evidence instead"]
@@ -184,6 +187,10 @@ class ReviewerAgent(Agent):
             "tests_passed": tests_passed,
             "tests_failed": tests_failed,
             "warnings": warnings,
+            # fingerprint of this review's complaints, so the loop policy can
+            # notice the same objections coming back unfixed
+            "issue_history": list(state.get("issue_history", []))
+                             + [issue_signature(issues)],
         }
         if evidence is not None:
             update["check_evidence"] = evidence["evidence"]

@@ -47,5 +47,8 @@ jobs:
       - name: Week 5 milestone - M2 three-role pipeline
         run: python scripts/week5_m2_check.py
 
+      - name: Week 6 milestone - loop termination stress test
+        run: python scripts/week6_loop_stress.py 5000
+
       - name: CLI smoke test
         run: python -m mawe.cli "Build a terminal snake game" --no-sandbox --db sqlite:///ci-smoke.db

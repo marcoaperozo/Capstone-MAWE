@@ -209,11 +209,44 @@ def stuck_developer_script() -> Dict[str, List[str]]:
 
 
 def picky_reviewer_script(revisions: int = 8) -> Dict[str, List[str]]:
-    """Reviewer never approves and the code does change -> iteration_cap."""
+    """Reviewer repeats the identical complaint while the code keeps changing.
+
+    Caught by repeated-issue detection, which fires before the iteration cap.
+    """
     return {
         "product_manager": [json.dumps(_DEFAULT_SPEC)],
         "developer": [_files_payload(_CODE_V1 + f"\n# revision {i}\n")
                       for i in range(1, revisions + 1)],
         "reviewer": [_review_payload(
             "reject", "major", ["criterion 4 still fails"], 4, 1)],
+    }
+
+
+def varied_reviewer_script(revisions: int = 10) -> Dict[str, List[str]]:
+    """Every round the complaint is different and the code is different.
+
+    Nothing repeats, so no-progress, oscillation and repeated-issue detection
+    all stay quiet and the hard iteration cap is the only thing left to stop
+    the loop. This is the scenario that proves the cap is a real backstop.
+    """
+    return {
+        "product_manager": [json.dumps(_DEFAULT_SPEC)],
+        "developer": [_files_payload(_CODE_V1 + f"\n# revision {i}\n")
+                      for i in range(1, revisions + 1)],
+        "reviewer": [_review_payload(
+            "reject", "major",
+            [f"criterion {1 + (i % 5)} fails in a new way (round {i})"], 3, 2)
+            for i in range(1, revisions + 1)],
+    }
+
+
+def oscillating_developer_script() -> Dict[str, List[str]]:
+    """Developer alternates between two versions it has already produced."""
+    a, b = _files_payload(_CODE_V1), _files_payload(_CODE_V2)
+    return {
+        "product_manager": [json.dumps(_DEFAULT_SPEC)],
+        "developer": [a, b, a, b, a, b],
+        "reviewer": [_review_payload(
+            "reject", "major", [f"still not right (round {i})"], 3, 2)
+            for i in range(1, 7)],
     }

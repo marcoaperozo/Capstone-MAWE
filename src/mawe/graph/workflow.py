@@ -20,14 +20,17 @@ from langgraph.graph import END, START, StateGraph
 
 from ..config import Settings, settings as default_settings
 from ..llm.base import LLMProvider
+from .policy import (
+    APPROVED,
+    ERROR,
+    ITERATION_CAP,
+    NO_PROGRESS,
+    OSCILLATION,
+    REPEATED_ISSUES,
+    UNRESOLVED,
+    LoopPolicy,
+)
 from .state import WorkflowState, initial_state
-
-# ---------------------------------------------------------------- constants
-
-APPROVED = "approved"
-ITERATION_CAP = "iteration_cap"
-NO_PROGRESS = "no_progress"
-ERROR = "error"
 
 
 def hash_files(files: List[dict]) -> str:
@@ -43,56 +46,39 @@ def hash_files(files: List[dict]) -> str:
 
 # ------------------------------------------------------------------ routing
 
+def _policy(blocking) -> LoopPolicy:
+    if isinstance(blocking, LoopPolicy):
+        return blocking
+    return LoopPolicy(blocking_severities=tuple(blocking))
+
+
 def route_after_review(state: WorkflowState,
-                       blocking: tuple = ("critical", "major")) -> str:
-    """Return the next node: either 'develop' or 'finalize'.
+                       blocking=("critical", "major")) -> str:
+    """Next node: 'develop' or 'finalize'.
 
-    This is the whole of the loop-prevention policy, in one place.
+    Kept as a free function because it is the single most-tested piece of the
+    engine; it now delegates to LoopPolicy so the route and the reason cannot
+    drift apart.
     """
-    # mechanism 4 (fallback): an agent error never hangs the graph
-    if state.get("errors"):
-        return "finalize"
-
-    verdict = state.get("verdict", "reject")
-    severity = state.get("severity")
-
-    # approved outright
-    if verdict == "approve":
-        return "finalize"
-
-    # mechanism 2: severity threshold - minor issues do not block
-    if severity not in blocking:
-        return "finalize"
-
-    # mechanism 3: no-progress detection
-    seen = state.get("seen_hashes", [])
-    current = state.get("code_hash")
-    if current and seen.count(current) > 1:
-        return "finalize"
-
-    # mechanism 1: hard iteration cap
-    if state.get("iteration", 0) >= state.get("max_iterations", 5):
-        return "finalize"
-
-    return "develop"
+    policy = _policy(blocking)
+    if isinstance(blocking, LoopPolicy):
+        policy = blocking
+    else:
+        policy = LoopPolicy(max_iterations=state.get("max_iterations", 5),
+                            blocking_severities=tuple(blocking))
+    return policy.decide(state).route
 
 
 def termination_reason(state: WorkflowState,
-                       blocking: tuple = ("critical", "major")) -> str:
-    """Why the loop stopped.  Mirrors route_after_review's decision order."""
-    if state.get("errors"):
-        return ERROR
-    if state.get("verdict") == "approve":
-        return APPROVED
-    if state.get("severity") not in blocking:
-        return APPROVED
-    seen = state.get("seen_hashes", [])
-    current = state.get("code_hash")
-    if current and seen.count(current) > 1:
-        return NO_PROGRESS
-    if state.get("iteration", 0) >= state.get("max_iterations", 5):
-        return ITERATION_CAP
-    return ERROR
+                       blocking=("critical", "major")) -> str:
+    """Why the loop stopped. Returns ERROR if called mid-loop."""
+    if isinstance(blocking, LoopPolicy):
+        policy = blocking
+    else:
+        policy = LoopPolicy(max_iterations=state.get("max_iterations", 5),
+                            blocking_severities=tuple(blocking))
+    decision = policy.decide(state)
+    return decision.reason or ERROR
 
 
 # -------------------------------------------------------------- graph build
@@ -104,6 +90,11 @@ class EngineContext:
     provider: LLMProvider
     settings: Settings
     on_event: Optional[Callable[[str, dict], None]] = None
+    policy: Optional[LoopPolicy] = None
+
+    def __post_init__(self):
+        if self.policy is None:
+            self.policy = LoopPolicy.from_settings(self.settings)
 
     def emit(self, kind: str, payload: dict) -> None:
         if self.on_event:
@@ -136,14 +127,16 @@ def build_graph(ctx: EngineContext):
         return update
 
     def finalize(state: WorkflowState) -> dict:
-        reason = termination_reason(state, tuple(ctx.settings.blocking_severities))
+        decision = ctx.policy.decide(state)
+        reason = decision.reason or ERROR
         status = "approved" if reason == APPROVED else (
             "failed" if reason == ERROR else "max_iterations")
         warnings = list(state.get("warnings", []))
         if reason != APPROVED:
             warnings.append(
-                f"finalized without approval ({reason}); returning the best "
-                f"version produced after {state.get('iteration', 0)} iteration(s)")
+                f"finalized without approval ({reason}): {decision.detail}. "
+                f"Returning the best of {state.get('iteration', 0)} "
+                f"iteration(s).")
         update = {"status": status, "termination_reason": reason,
                   "warnings": warnings}
         ctx.emit("finalize", update)
@@ -160,7 +153,7 @@ def build_graph(ctx: EngineContext):
     graph.add_edge("develop", "review")
     graph.add_conditional_edges(
         "review",
-        lambda s: route_after_review(s, tuple(ctx.settings.blocking_severities)),
+        lambda s: ctx.policy.decide(s).route,
         {"develop": "develop", "finalize": "finalize"},
     )
     graph.add_edge("finalize", END)
