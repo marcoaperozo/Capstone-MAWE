@@ -172,7 +172,7 @@ textbox(s, 1.0, 5.65, 11.3, 0.9, [
 
 textbox(s, 1.0, H - 0.78, 11.3, 0.4,
         [("Phases 1–3 complete  ·  engine v1.0  ·  "
-          "273 automated tests passing  ·  evaluation phase next",
+          "255 automated tests passing  ·  evaluation phase next",
           12, False, LBLUE)])
 
 # =================================================== 2 · where we are
@@ -202,7 +202,7 @@ card(s, 0.6, 5.1, 3.85, 1.75, "M1 – M3 all met",
      "The three-role pipeline runs end to end, provably terminates, stays "
      "inside a token budget, and every run is fully traceable.", GREEN)
 card(s, 4.72, 5.1, 3.85, 1.75, "Engine v1.0",
-     "273 automated tests, green on Python 3.11, 3.12 and 3.13. No API key "
+     "255 automated tests, green on Python 3.11, 3.12 and 3.13. No API key "
      "needed and no cost per run.", GREEN)
 card(s, 8.85, 5.1, 3.85, 1.75, "What is left",
      "Phase 4: a 20-task benchmark with hidden tests, a single-model "
@@ -225,13 +225,13 @@ table(s, 0.6, 2.0, 12.1, [
     ["6", "Loop-prevention hardening",
      "Routing and reporting unified into one policy function; two new "
      "detectors (oscillation, repeated issues); 100,000-run stress sweep.",
-     "210"],
+     "212"],
     ["7", "Context compression",
      "Latest iteration kept in full, older ones collapsed into a progress "
-     "log under an explicit token budget.", "243"],
+     "log under an explicit token budget.", "233"],
     ["8", "Integration, web UI, v1.0 (M3)",
      "Whole-stack integration suite, optional FastAPI front end, and a "
-     "30-point check that every layer still works together.", "273"],
+     "30-point check that every layer still works together.", "255"],
 ], [0.6, 2.9, 7.2, 0.8], size=12.5, row_h=0.95)
 
 textbox(s, 0.6, 6.25, 12.1, 0.6, [
@@ -393,7 +393,7 @@ textbox(s, 0.6, 1.35, 12.1, 0.35, [
      15, False, BLACK)])
 
 STEPS = [
-    ("pytest -q", "273 tests, about six seconds."),
+    ("pytest -q", "255 tests, about ten seconds."),
     ("python -m mawe.cli \"Build a snake game\" -v", "Watch the pipeline run live."),
     ("python scripts/week5_m2_check.py",
      "The Reviewer rejects a defect it was scripted to approve."),
