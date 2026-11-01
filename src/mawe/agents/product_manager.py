@@ -28,6 +28,8 @@ class Specification:
     features: List[str]
     constraints: List[str] = field(default_factory=list)
     acceptance_criteria: List[str] = field(default_factory=list)
+    #: optional machine-runnable assertions; see agents.checks
+    checks: List[dict] = field(default_factory=list)
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), indent=2)
@@ -86,6 +88,16 @@ def validate(spec: Specification) -> List[str]:
         if len(criterion.strip()) < 10:
             problems.append(f"criterion {i} is too short to be testable: {criterion!r}")
 
+    for j, check in enumerate(spec.checks):
+        if not isinstance(check, dict):
+            problems.append(f"checks[{j}] is not an object")
+            continue
+        index = check.get("criterion")
+        if not isinstance(index, int) or not (1 <= index <= n):
+            problems.append(
+                f"checks[{j}].criterion is {index!r}; it must be a criterion "
+                f"number between 1 and {n}")
+
     return problems
 
 
@@ -100,6 +112,7 @@ def parse_specification(text: str) -> Specification:
             constraints=as_str_list(data.get("constraints"), "constraints"),
             acceptance_criteria=as_str_list(
                 data.get("acceptance_criteria"), "acceptance_criteria"),
+            checks=list(data.get("checks") or []),
         )
     except ParseError:
         raise

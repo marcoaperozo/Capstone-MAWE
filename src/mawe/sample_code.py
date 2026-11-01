@@ -264,3 +264,63 @@ def dev_script(name: str) -> Dict[str, List[str]]:
     import json
     files = RUNNABLE_SAMPLES[name]["files"]
     return {"developer": [json.dumps({"files": files})]}
+
+
+# --------------------------------------------------------------------------
+# Week 5: a two-iteration repair story.
+# v1 converts correctly but forgets to round, so converting 100 F prints
+# 37.77777777777778 where the criterion requires 37.8. The executable check
+# catches it; reading the code casually would not.
+# v2 fixes it. The Reviewer discovers this by running the program, not by
+# being told.
+# --------------------------------------------------------------------------
+
+TEMPERATURE_MAIN_UNROUNDED = TEMPERATURE_MAIN.replace(
+    "        print(round(c_to_f(value), 1))",
+    "        print(c_to_f(value))",
+).replace(
+    "        print(round(f_to_c(value), 1))",
+    "        print(f_to_c(value))",
+)
+
+TEMPERATURE_SPEC = {
+    "summary": "CLI tool converting temperatures between Celsius and Fahrenheit.",
+    "language": "python",
+    "files": ["src/main.py"],
+    "features": [
+        "accepts a value and a unit as command-line arguments",
+        "converts in both directions",
+        "prints the result rounded to one decimal place",
+        "reports an error for an unrecognised unit",
+    ],
+    "constraints": ["standard library only"],
+    "acceptance_criteria": [
+        "running with '100 C' prints 212.0",
+        "running with '100 F' prints 37.8, rounded to one decimal place",
+        "an unrecognised unit exits with a non-zero status",
+    ],
+    "checks": [
+        {"criterion": 1, "argv": ["100", "C"], "expect_stdout": "212.0",
+         "match": "exact", "expect_exit": 0},
+        {"criterion": 2, "argv": ["100", "F"], "expect_stdout": "37.8",
+         "match": "exact", "expect_exit": 0},
+        {"criterion": 3, "argv": ["10", "K"], "expect_exit": 1},
+    ],
+}
+
+
+def temperature_repair_script():
+    """PM + Developer script where iteration 1 fails a real check."""
+    import json
+    unrounded = {"files": [{"path": "src/main.py", "language": "python",
+                            "content": TEMPERATURE_MAIN_UNROUNDED}]}
+    rounded = {"files": [{"path": "src/main.py", "language": "python",
+                          "content": TEMPERATURE_MAIN}]}
+    return {
+        "product_manager": [json.dumps(TEMPERATURE_SPEC)],
+        "developer": [json.dumps(unrounded), json.dumps(rounded)],
+        # the model always claims success; the sandbox decides
+        "reviewer": [json.dumps({"verdict": "approve", "severity": "minor",
+                                 "issues": [], "tests_passed": 3,
+                                 "tests_failed": 0})],
+    }

@@ -40,6 +40,11 @@ _DEFAULT_SPEC = {
         "colliding with the snake's own body ends the game",
         "the score is printed and increases on each food eaten",
     ],
+    "checks": [
+        {"criterion": 1, "argv": [], "stdin": "", "expect_exit": 0},
+        {"criterion": 5, "argv": [], "stdin": "",
+         "expect_stdout": "Score:", "match": "contains", "expect_exit": 0},
+    ],
 }
 
 _CODE_V1 = '''"""Terminal snake game (first draft)."""

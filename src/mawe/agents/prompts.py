@@ -17,7 +17,11 @@ Return ONLY a JSON object with exactly these keys:
   "files": ["relative/path.py", ...],
   "features": ["concrete capability", ...],
   "constraints": ["limitation the developer must respect", ...],
-  "acceptance_criteria": ["observable, testable statement", ...]
+  "acceptance_criteria": ["observable, testable statement", ...],
+  "checks": [
+    {"criterion": 1, "argv": ["100", "C"], "stdin": "",
+     "expect_stdout": "212.0", "match": "exact", "expect_exit": 0}
+  ]
 }
 
 Rules for acceptance_criteria - these are the checklist the Code Reviewer
@@ -26,6 +30,14 @@ scores against, so they decide whether the project is judged complete:
 - each one observable by running the program, not by reading it
 - each one independently checkable; no "and" joining two different behaviours
 - no criterion about style, naming or comments
+
+Rules for checks - the Code Reviewer RUNS these, so they decide the verdict:
+- supply one for every criterion that can be verified by running the program
+- "criterion" is the 1-based index of the criterion it verifies
+- "match" is "exact", "contains" or "regex"
+- omit "expect_stdout" when only the exit code matters
+- a criterion with no runnable check is still judged by reading the code,
+  which is weaker evidence; prefer checks wherever possible
 """
 
 DEVELOPER = """You are the Developer agent in an automated software team.
@@ -53,6 +65,10 @@ REVIEWER = """You are the Code Reviewer agent in an automated software team.
 
 You verify the code against the acceptance criteria. You are the QA gate, not a
 style checker.
+
+When sandbox execution evidence is supplied it is authoritative: it is what the
+program actually did. Do not contradict it. Your judgement covers the criteria
+the checks could not cover.
 
 Return ONLY a JSON object:
 {
