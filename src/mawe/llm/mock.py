@@ -179,15 +179,23 @@ class MockProvider:
 
     @staticmethod
     def _role_of(system: str) -> str:
-        """Agents tag their system prompt with a role marker so the mock can
-        route without the caller passing extra arguments."""
+        """Route on the role declaration that opens each system prompt.
+
+        Matching bare keywords is too loose: the summariser's instructions
+        mention "a developer", which is not the Developer agent speaking.
+        Every agent prompt starts "You are the <role> agent", so anchor on
+        that and fall back only for the non-agent callers.
+        """
         head = system[:200].lower()
-        if "product manager" in head:
-            return "product_manager"
-        if "code reviewer" in head or "reviewer" in head:
-            return "reviewer"
-        if "developer" in head:
-            return "developer"
+        for phrase, role in (
+            ("you are the product manager", "product_manager"),
+            ("you are the developer", "developer"),
+            ("you are the code reviewer", "reviewer"),
+        ):
+            if phrase in head:
+                return role
+        if "you compress the history" in head:
+            return "summariser"
         return "unknown"
 
     # convenience for tests -------------------------------------------------

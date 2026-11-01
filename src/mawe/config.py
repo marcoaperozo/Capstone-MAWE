@@ -29,6 +29,13 @@ class Settings:
     # memory management (phase 3)
     context_token_budget: int = field(
         default_factory=lambda: _int("MAWE_CONTEXT_BUDGET", 12000))
+    #: how many recent iterations keep their full source in the prompt
+    keep_iterations_in_full: int = field(
+        default_factory=lambda: _int("MAWE_KEEP_FULL", 1))
+    #: set false for the Phase 4 ablation (condition C')
+    summarisation_enabled: bool = field(
+        default_factory=lambda: os.environ.get(
+            "MAWE_SUMMARISATION", "1").lower() not in ("0", "false", "no"))
 
     # sandbox
     sandbox_timeout_s: int = field(default_factory=lambda: _int("MAWE_SANDBOX_TIMEOUT", 10))

@@ -172,6 +172,15 @@ class _Recorder:
                 self.repo.add_message(self.run, iteration, "developer",
                                       f"produced {summary}")
 
+            before = int(payload.get("context_tokens_before") or 0)
+            after = int(payload.get("context_tokens_after") or 0)
+            if before or after:
+                self.repo.add_memory_summary(
+                    self.run, from_iter=1, to_iter=max(1, iteration - 1),
+                    summary=(f"context for iteration {iteration}: "
+                             f"{before} tokens uncompressed, {after} sent"),
+                    before=before, after=after)
+
         elif kind == "review":
             iteration = self.run.code_artifacts[-1].iteration if \
                 self.run.code_artifacts else 1

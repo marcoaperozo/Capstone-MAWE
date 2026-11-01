@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from ..graph.workflow import hash_files
+from ..memory import MemoryManager
 from .base import Agent
 from .parsing import ParseError, extract_code_blocks, extract_json
 from .prompts import DEVELOPER
@@ -112,6 +113,11 @@ class DeveloperAgent(Agent):
 
     MAX_REPAIR_ATTEMPTS = 1
 
+    def __init__(self, provider, settings, memory: "MemoryManager" = None):
+        super().__init__(provider, settings)
+        self.memory = memory or MemoryManager.from_settings(
+            settings, enabled=getattr(settings, "summarisation_enabled", True))
+
     def build_prompt(self, state: Dict[str, Any]) -> str:
         parts = ["SPECIFICATION:", state.get("spec", "")]
 
@@ -127,17 +133,16 @@ class DeveloperAgent(Agent):
                 "Address every one of these items:",
             ]
             parts += [f"{i}. {issue}" for i, issue in enumerate(issues, 1)]
-            parts += ["",
-                      "YOUR PREVIOUS FILES:",
-                      self._render_previous(state.get("files") or [])]
+
+            # the history section is built under a token budget: recent
+            # iterations in full, older ones collapsed into a progress log
+            section, _stats = self.memory.build_history(
+                state.get("history") or [], state.get("files") or [])
+            if section:
+                parts += ["", section]
 
         parts += ["", "Return the complete files JSON."]
         return "\n".join(parts)
-
-    @staticmethod
-    def _render_previous(files: List[Dict[str, str]]) -> str:
-        return "\n\n".join(
-            f"--- {f['path']} ---\n{f['content']}" for f in files) or "(none)"
 
     def run(self, state: Dict[str, Any]) -> Dict[str, Any]:
         spec_json = state.get("spec_json") or {}
@@ -172,11 +177,16 @@ class DeveloperAgent(Agent):
                 continue
 
             digest = hash_files(files)
+            stats = self.memory.last_stats
             return {
                 "files": files,
                 "code_hash": digest,
                 "seen_hashes": list(state.get("seen_hashes", [])) + [digest],
                 "iteration": iteration,
+                "context_tokens_before": (stats.tokens_uncompressed
+                                          if stats else 0),
+                "context_tokens_after": (stats.tokens_compressed
+                                         if stats else 0),
             }
 
     @staticmethod

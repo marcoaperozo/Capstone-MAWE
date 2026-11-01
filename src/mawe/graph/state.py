@@ -41,6 +41,9 @@ class WorkflowState(TypedDict, total=False):
     tests_passed: int
     tests_failed: int
     issue_history: List[str]
+    history: List[Any]              # list[memory.IterationRecord]
+    context_tokens_before: int
+    context_tokens_after: int
 
     # -- outcome -----------------------------------------------------------
     status: str
@@ -63,6 +66,9 @@ def initial_state(prompt: str, max_iterations: int = 5,
         acceptance_criteria=[],
         issues=[],
         issue_history=[],
+        history=[],
+        context_tokens_before=0,
+        context_tokens_after=0,
         warnings=[],
         errors=[],
         tests_passed=0,

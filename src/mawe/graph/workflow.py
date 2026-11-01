@@ -122,7 +122,13 @@ def build_graph(ctx: EngineContext):
         return update
 
     def review(state: WorkflowState) -> dict:
+        from ..memory import MemoryManager
+
         update = reviewer.run(state)
+        # the completed iteration is only fully known once the review lands:
+        # the files came from develop, the verdict from here
+        record = MemoryManager.record_from_state({**state, **update})
+        update["history"] = list(state.get("history", [])) + [record]
         ctx.emit("review", update)
         return update
 
