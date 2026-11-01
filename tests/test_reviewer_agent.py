@@ -219,3 +219,34 @@ def test_max_severity_picks_the_worst():
     assert max_severity("minor", "critical", "major") == "critical"
     assert max_severity("minor", None) == "minor"
     assert max_severity(None, None) is None
+
+
+# ------------------------------------------- check coverage bounds the override
+def test_downgrade_only_applies_when_every_criterion_has_a_check():
+    """Evidence can only override where evidence exists.
+
+    The temperature spec has a check per criterion, so a blocking reject on
+    passing code is safely downgraded. A spec with uncovered criteria must
+    not be: the reviewer may be right about the one nobody tested.
+    """
+    partial = dict(TEMPERATURE_SPEC)
+    partial["acceptance_criteria"] = TEMPERATURE_SPEC["acceptance_criteria"] + [
+        "the program prints usage text when given no arguments"]
+    # no check added for criterion 4
+
+    provider = MockProvider(review_saying(
+        "reject", "major", ["criterion 4 fails: no usage text"]))
+    update = ReviewerAgent(provider, LIVE).run(
+        state_for(TEMPERATURE_MAIN, partial))
+
+    assert update["tests_failed"] == 0, "the three real checks still pass"
+    assert update["severity"] == "major", "an uncovered criterion can block"
+    assert any("have no check" in w for w in update["warnings"])
+
+
+def test_full_coverage_still_downgrades():
+    provider = MockProvider(review_saying("reject", "major", ["style nit"]))
+    update = ReviewerAgent(provider, LIVE).run(state_for(TEMPERATURE_MAIN))
+    assert update["severity"] == "minor"
+    assert any("every criterion has an executable check" in w
+               for w in update["warnings"])

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mawe"
-version = "0.4.0"
+version = "1.0.0"
 description = "Multi-Agent AI Workflow Engine - simulating an autonomous software development team"
 requires-python = ">=3.11"
 authors = [

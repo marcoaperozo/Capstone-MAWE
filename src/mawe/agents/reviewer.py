@@ -173,12 +173,25 @@ class ReviewerAgent(Agent):
                 if not any("Sandbox evidence" in i for i in issues):
                     issues = [evidence_issue] + issues
             elif verdict == "reject" and severity in ("critical", "major"):
-                # every measurable criterion passed, so a blocking reject has
-                # to be justified by something the checks could not cover
-                warnings.append(
-                    "all executable checks passed; the reviewer's blocking "
-                    "reject was downgraded to minor")
-                severity = "minor"
+                # Every executable check passed. Downgrading a blocking reject
+                # is only safe when the checks actually cover every criterion:
+                # a criterion nobody wrote a check for can still be genuinely
+                # unmet, and silently calling that "minor" would reintroduce
+                # the false approval this whole mechanism exists to prevent.
+                covered = {c.criterion for c in checks}
+                total = len(state.get("acceptance_criteria") or [])
+                uncovered = [i for i in range(1, total + 1) if i not in covered]
+                if uncovered:
+                    warnings.append(
+                        f"all {evidence['tests_passed']} executable check(s) "
+                        f"passed, but criteria {uncovered} have no check; the "
+                        f"reviewer's judgement on those still stands")
+                else:
+                    warnings.append(
+                        "every criterion has an executable check and all of "
+                        "them passed; the reviewer's blocking reject was "
+                        "downgraded to minor")
+                    severity = "minor"
 
         update: Dict[str, Any] = {
             "verdict": verdict,

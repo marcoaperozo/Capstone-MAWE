@@ -47,9 +47,20 @@ python -m mawe.cli "Build a terminal snake game"
 Milestone checks — each one is a measured claim, not an assertion:
 
 ```bash
-python scripts/m1_demo.py           # all three termination paths fire
-python scripts/week3_spec_check.py  # PM produces valid specs on 5 prompts
-python scripts/week4_dev_check.py   # generated code is written and executed
+python scripts/m1_demo.py            # the Week 1-2 standalone prototype
+python scripts/week3_spec_check.py   # PM produces valid specs on 5 prompts
+python scripts/week4_dev_check.py    # generated code is written and executed
+python scripts/week5_m2_check.py     # the reviewer cannot be talked out of a failure
+python scripts/week6_loop_stress.py  # 100,000 adversarial runs, all terminate
+python scripts/week7_memory_check.py # context stays inside the token budget
+python scripts/week8_m3_check.py     # M3: every layer still works together
+```
+
+Optional web UI:
+
+```bash
+pip install fastapi uvicorn
+uvicorn mawe.web.app:app --reload
 ```
 
 ## Project status
@@ -57,9 +68,9 @@ python scripts/week4_dev_check.py   # generated code is written and executed
 | Phase | Weeks | Deliverable | Status |
 |---|---|---|---|
 | 1. Setup & prototyping | 1–2 | Repo, CI, database schema, two-agent pipeline on a LangGraph state graph | **done** |
-| 2. Role implementation | 3–5 | Product Manager, Developer and Reviewer agents with typed hand-offs | **PM + Developer done** (Weeks 3–4), Reviewer is Week 5 |
-| 3. Memory & state | 6–8 | Context summarisation, token budget | planned |
-| 4. Testing & evaluation | 9–12 | Benchmark suite, single-model baseline, final report | planned |
+| 2. Role implementation | 3–5 | Product Manager, Developer and Reviewer agents with typed hand-offs | **done** |
+| 3. Memory & state | 6–8 | Loop hardening, context summarisation, integration tests, web UI | **done — engine v1.0 (M3)** |
+| 4. Testing & evaluation | 9–12 | Benchmark suite, single-model baseline, final report | next |
 
 ## Layout
 
@@ -70,7 +81,11 @@ src/mawe/
   llm/               provider abstraction: mock, Anthropic, OpenAI
   agents/            Product Manager, Developer, Reviewer + output parsing
   graph/             LangGraph state graph and the routing rules
+  graph/policy.py    the loop-prevention policy, in one testable function
+  memory.py          context compression under a token budget
   sandbox/           subprocess runner for generated code
+  agents/checks.py   executable acceptance checks the Reviewer runs
+  web/               optional FastAPI front end
   cli.py             command-line entry point
 tests/               unit + integration, all against the mock provider
 scripts/             milestone demos
@@ -90,6 +105,21 @@ pip install anthropic
 ```
 
 `.env` is gitignored. **Never commit an API key.**
+
+## How the Reviewer avoids rubber-stamping
+
+An acceptance criterion written in English can simply be *claimed* to pass by
+a model that never ran anything. So the Product Manager also emits executable
+checks — an invocation and the output it must produce — and the Reviewer runs
+them in the sandbox before forming a verdict. Where the model and the
+measurement disagree, the measurement wins:
+
+- a model approval of code that failed a check is overridden to **reject**;
+- a blocking reject is downgraded to **minor** once every criterion has a
+  check and all of them pass, so a reviewer that objects to naming cannot
+  stall the loop;
+- that downgrade is **withheld** when some criteria have no check, because a
+  criterion nobody tested can still be genuinely unmet.
 
 ## Why a mock provider
 

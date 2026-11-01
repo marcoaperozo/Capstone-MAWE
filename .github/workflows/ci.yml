@@ -53,5 +53,8 @@ jobs:
       - name: Week 7 milestone - context stays under budget
         run: python scripts/week7_memory_check.py
 
+      - name: Week 8 milestone - M3 stable engine v1.0
+        run: python scripts/week8_m3_check.py
+
       - name: CLI smoke test
         run: python -m mawe.cli "Build a terminal snake game" --no-sandbox --db sqlite:///ci-smoke.db
