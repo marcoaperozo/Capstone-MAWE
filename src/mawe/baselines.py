@@ -45,10 +45,8 @@ the engine's loop prevention cannot flatter B's cost figures.
 
 from __future__ import annotations
 
-import json
 import time
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Protocol
+from typing import Callable, Dict, List, Optional, Protocol
 
 from .agents.developer import DeveloperError, parse_files
 from .agents.parsing import ParseError, as_str_list, extract_json
@@ -110,9 +108,14 @@ def _render(files: List[Dict[str, str]]) -> str:
 
 
 # ------------------------------------------------------------------ the result
-@dataclass
 class Condition(Protocol):
-    """What the experiment runner needs from any condition."""
+    """What the experiment runner needs from any condition.
+
+    A structural type, documenting the one method `bench.experiment` calls.
+    It carried a `@dataclass` decorator for a while, which was meaningless on
+    a Protocol and implied these were instantiable records rather than a
+    shape that `Engine` and the baselines happen to share.
+    """
 
     name: str
 

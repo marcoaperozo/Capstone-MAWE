@@ -190,7 +190,7 @@ def test_wilcoxon_exact_matches_scipy_when_there_are_no_ties():
         while True:
             a = [round(random.uniform(0, 50), 4) for _ in range(n)]
             b = [round(random.uniform(0, 50), 4) for _ in range(n)]
-            gaps = [abs(x - y) for x, y in zip(a, b)]
+            gaps = [abs(x - y) for x, y in zip(a, b, strict=True)]
             if len(set(gaps)) == n and 0 not in gaps:
                 break
         mine = stats.wilcoxon_signed_rank(a, b)
@@ -331,6 +331,20 @@ def test_cliffs_delta_spans_its_range():
 ])
 def test_effect_sizes_are_labelled(delta, label):
     assert stats.interpret_delta(delta) == label
+
+
+def test_rank_biserial_rejects_mismatched_lengths():
+    """Without the check, zip truncates and returns a plausible number."""
+    with pytest.raises(ValueError, match="same length"):
+        stats.rank_biserial([1.0, 2.0, 3.0], [1.0, 2.0])
+
+
+@pytest.mark.parametrize("function", [
+    stats.paired_t_test, stats.wilcoxon_signed_rank, stats.rank_biserial,
+])
+def test_every_paired_function_validates_its_lengths(function):
+    with pytest.raises(ValueError, match="same length"):
+        function([1.0, 2.0], [1.0])
 
 
 def test_rank_biserial_matches_its_definition():

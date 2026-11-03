@@ -22,7 +22,7 @@ solution ever leaks into a prompt.
 
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from .tasks import BY_SLUG, BenchTask
 
@@ -886,7 +886,8 @@ SOURCES: Dict[str, str] = {
 }
 
 
-def files_for(slug: str, source: str = None) -> List[Dict[str, str]]:
+def files_for(slug: str, source: Optional[str] = None
+               ) -> List[Dict[str, str]]:
     """The reference solution as the engine would hand it to the sandbox."""
     task: BenchTask = BY_SLUG[slug]
     return [{

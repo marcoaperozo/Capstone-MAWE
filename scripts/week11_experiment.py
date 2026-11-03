@@ -40,7 +40,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from mawe.baselines import SelfRefine, SingleModel  # noqa: E402
-from mawe.bench import TASKS, select  # noqa: E402
+from mawe.bench import select  # noqa: E402
 from mawe.bench import report as reporting  # noqa: E402
 from mawe.bench.experiment import (  # noqa: E402
     Pricing,
@@ -71,7 +71,7 @@ PRICING = {
 
 def build_conditions(provider_factory, settings: Settings, database_url: str):
     """The four conditions, each as a factory producing a fresh runner."""
-    ablation = Settings(**{**settings.__dict__})
+    ablation = Settings(**settings.__dict__)
     ablation.summarisation_enabled = False
 
     return [

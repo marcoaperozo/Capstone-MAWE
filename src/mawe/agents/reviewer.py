@@ -20,7 +20,7 @@ approval, and rejection loops over trivia.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from .base import Agent
 from ..graph.policy import issue_signature

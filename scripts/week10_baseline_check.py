@@ -85,7 +85,7 @@ def conditions(quality: str, settings: Settings):
     settings object, so the only thing that differs between them is the
     process being tested.
     """
-    ablation = Settings(**{**settings.__dict__})
+    ablation = Settings(**settings.__dict__)
     ablation.summarisation_enabled = False
 
     return [
@@ -110,8 +110,9 @@ def sweep(quality: str, tasks, settings: Settings, task_ids):
 def sweep_conditions(labels, quality: str, tasks, settings: Settings,
                      task_ids):
     rows_by_condition = {}
-    wanted = [(l, f) for l, f in conditions(quality, settings)
-              if l in labels]
+    wanted = [(name, factory)
+              for name, factory in conditions(quality, settings)
+              if name in labels]
     for label, factory in wanted:
         started = time.time()
         rows = run_condition(label, factory, tasks, repetitions=1,
@@ -168,11 +169,11 @@ def main(argv) -> int:
     print(LINE)
     print(f"  tasks        : {len(tasks)}"
           + ("  (--quick subset)" if quick else ""))
-    print(f"  conditions   : A single model | B self-refinement | "
-          f"C engine | C' engine, no summarisation")
+    print("  conditions   : A single model | B self-refinement | "
+          "C engine | C' engine, no summarisation")
     print(f"  iteration cap: {settings.max_iterations}")
     print(f"  pricing      : {EXAMPLE_PRICING.label}")
-    print(f"  provider     : bench.oracle fixture, NOT a model")
+    print("  provider     : bench.oracle fixture, NOT a model")
 
     # ---------------------------------------------------------------- 0
     section("0 - the fixture itself is valid")

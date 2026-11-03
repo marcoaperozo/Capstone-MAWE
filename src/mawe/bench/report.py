@@ -39,7 +39,6 @@ from .stats import (
     mcnemar_exact,
     mean,
     mean_ci,
-    median,
     proportion_ci,
     wilcoxon_signed_rank,
 )
@@ -192,7 +191,8 @@ def _aligned(left: Sequence[TaskSummary],
     zero for it, because that would read as a failure rather than an absence.
     """
     by_task = {s.task: s for s in right}
-    return [(l, by_task[l.task]) for l in left if l.task in by_task]
+    return [(item, by_task[item.task]) for item in left
+            if item.task in by_task]
 
 
 def compare(left: Sequence[TaskSummary], right: Sequence[TaskSummary],
@@ -218,16 +218,17 @@ def compare(left: Sequence[TaskSummary], right: Sequence[TaskSummary],
     right_name = pairs[0][1].condition
 
     if metric == "success":
-        left_values = [1.0 if l.solved else 0.0 for l, _ in pairs]
-        right_values = [1.0 if r.solved else 0.0 for _, r in pairs]
-        test = mcnemar_exact([l.solved for l, _ in pairs],
-                            [r.solved for _, r in pairs])
+        left_values = [1.0 if a.solved else 0.0 for a, _ in pairs]
+        right_values = [1.0 if b.solved else 0.0 for _, b in pairs]
+        test = mcnemar_exact([a.solved for a, _ in pairs],
+                             [b.solved for _, b in pairs])
     else:
-        left_values = [float(getattr(l, metric)) for l, _ in pairs]
-        right_values = [float(getattr(r, metric)) for _, r in pairs]
+        left_values = [float(getattr(a, metric)) for a, _ in pairs]
+        right_values = [float(getattr(b, metric)) for _, b in pairs]
         test = wilcoxon_signed_rank(left_values, right_values)
 
-    differences = [x - y for x, y in zip(left_values, right_values)]
+    differences = [x - y for x, y in zip(left_values, right_values,
+                                         strict=True)]
     effect = cliffs_delta(left_values, right_values)
     return Comparison(
         left=left_name, right=right_name, metric=metric,
@@ -300,8 +301,8 @@ def build(rows: Sequence[RunRow],
 # =========================================================== rendering
 def _order(labels: Sequence[str]) -> List[str]:
     preferred = ["A", "B", "C", "C'"]
-    return ([l for l in preferred if l in labels]
-            + sorted(l for l in labels if l not in preferred))
+    return ([name for name in preferred if name in labels]
+            + sorted(name for name in labels if name not in preferred))
 
 
 def render(report: Report, width: int = 96) -> str:
@@ -319,8 +320,8 @@ def render(report: Report, width: int = 96) -> str:
         out.append(f"  iteration cap {meta.get('max_iterations', '?')} / "
                    f"{report.repetitions} repetition(s) per task / "
                    f"pricing: {meta.get('pricing', {}).get('label', '?')}")
-    out.append(f"  unit of analysis: the task. Repetitions are averaged "
-               f"within a task, never\n  counted as extra observations.")
+    out.append("  unit of analysis: the task. Repetitions are averaged "
+               "within a task, never\n  counted as extra observations.")
     out.append("")
 
     # ------------------------------------------------ per condition
@@ -356,7 +357,7 @@ def render(report: Report, width: int = 96) -> str:
     if any(c.by_difficulty for c in report.conditions.values()):
         out.append("")
         out.append("  solved by difficulty:")
-        out.append(f"    {'':<6}" + "".join(f"{l:>12}" for l in levels))
+        out.append(f"    {'':<6}" + "".join(f"{x:>12}" for x in levels))
         for label in _order(list(report.conditions)):
             item = report.conditions[label]
             cells = ""
@@ -366,9 +367,9 @@ def render(report: Report, width: int = 96) -> str:
             out.append(f"    {label:<6}{cells}")
 
     # ------------------------------------------------ stability
-    unstable = {l: report.conditions[l].unstable_tasks
-                for l in report.conditions
-                if report.conditions[l].unstable_tasks}
+    unstable = {name: report.conditions[name].unstable_tasks
+                for name in report.conditions
+                if report.conditions[name].unstable_tasks}
     if report.repetitions > 1:
         out.append("")
         if unstable:

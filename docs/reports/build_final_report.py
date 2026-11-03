@@ -386,8 +386,8 @@ def build(findings: dict) -> str:
       "already tried.")
     w("")
     if "C" in conditions and "C'" in conditions:
-        w(f"The ablation confirms the \"without changing outcomes\" half: C "
-          f"and C' solve the same")
+        w("The ablation confirms the \"without changing outcomes\" half: C "
+          "and C' solve the same")
         w(f"tasks ({conditions['C']['solved']}/{conditions['C']['tasks']} "
           f"and {conditions[chr(67) + chr(39)]['solved']}"
           f"/{conditions[chr(67) + chr(39)]['tasks']}). On runs long enough "

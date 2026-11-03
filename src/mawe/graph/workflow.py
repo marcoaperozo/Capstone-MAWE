@@ -23,11 +23,11 @@ from ..llm.base import LLMProvider
 from .policy import (
     APPROVED,
     ERROR,
-    ITERATION_CAP,
-    NO_PROGRESS,
-    OSCILLATION,
-    REPEATED_ISSUES,
-    UNRESOLVED,
+    # re-exported: `graph/__init__` and tests/test_loop_prevention.py import
+    # these from here, so they are part of this module's surface even though
+    # nothing below uses them
+    ITERATION_CAP,  # noqa: F401
+    NO_PROGRESS,  # noqa: F401
     LoopPolicy,
 )
 from .state import WorkflowState, initial_state

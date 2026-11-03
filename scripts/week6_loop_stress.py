@@ -154,7 +154,7 @@ def main() -> int:
     results = [part_one(), part_two(runs)]
     print()
     print("=" * 96)
-    print(f"WEEK 6 MILESTONE - loop always terminates on stress tests")
+    print("WEEK 6 MILESTONE - loop always terminates on stress tests")
     print("=" * 96)
     print(f"  mechanisms fire correctly        : "
           f"{'PASS' if results[0] else 'FAIL'}")

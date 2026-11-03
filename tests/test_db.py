@@ -1,7 +1,6 @@
 """Week 1: the persistence layer records a traceable run."""
 
 import pytest
-from sqlalchemy import select
 
 from mawe.db import Run, make_engine, session_scope, sha256
 from mawe.db.repository import RunRepository

@@ -327,7 +327,7 @@ def main():
             n = db.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
             print(f"  {table:<18} {n:>4} rows")
         print("\n  runs table:")
-        cols = "id prompt status iteration_count total_tokens termination_reason".split()
+        cols = ["id", "prompt", "status", "iteration_count", "total_tokens", "termination_reason"]
         print("   " + "".join(f"{c:<22}" if c == "prompt" else f"{c:<20}" for c in cols))
         for row in db.execute("SELECT id, prompt, status, iteration_count,"
                               " total_tokens, termination_reason FROM runs"):

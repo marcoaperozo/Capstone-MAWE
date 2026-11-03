@@ -4,9 +4,12 @@ Week 4 deliverable.  Generated code never runs in the engine's process: it is
 written to a throwaway directory and executed as a subprocess with a wall-clock
 timeout, captured output and truncation.
 
-Docker with no network is the Phase 2 hardening target (proposal section 8.3).
-The subprocess runner is the portable fallback so CI works without a Docker
-daemon; `docker_available()` reports which one is in use.
+Docker with no network is the hardening target (proposal section 8.3) and is
+**not implemented**: every execution in this project goes through the
+subprocess path below, which is why each result reports
+`isolation: "subprocess"`. `docker_available()` only probes whether a daemon
+could be reached, so that the gap is visible rather than assumed closed. This
+is a resource limit and a containment boundary, not a security boundary.
 
 Two entry points, same isolation:
 

@@ -72,8 +72,9 @@ def parse_checks(raw: Any) -> List[AcceptanceCheck]:
             raise ParseError(f"checks[{i}] is not an object")
         try:
             criterion = int(item.get("criterion", 0))
-        except (TypeError, ValueError):
-            raise ParseError(f"checks[{i}].criterion must be an integer")
+        except (TypeError, ValueError) as exc:
+            raise ParseError(
+                f"checks[{i}].criterion must be an integer") from exc
         argv = item.get("argv") or []
         if isinstance(argv, str):
             argv = [argv]

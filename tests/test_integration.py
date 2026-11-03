@@ -6,7 +6,6 @@ engine v1.0" means in practice: the pieces built in Weeks 1 to 7 still work
 together.
 """
 
-import json
 
 import pytest
 

@@ -258,7 +258,7 @@ class TestResult:
 def paired_t_test(a: Sequence[float], b: Sequence[float]) -> TestResult:
     if len(a) != len(b):
         raise ValueError("paired samples must be the same length")
-    differences = [x - y for x, y in zip(a, b)]
+    differences = [x - y for x, y in zip(a, b, strict=True)]
     n = len(differences)
     if n < 2:
         return TestResult("paired t", float("nan"), float("nan"), n,
@@ -321,7 +321,7 @@ def wilcoxon_signed_rank(a: Sequence[float],
     if b is not None:
         if len(a) != len(b):
             raise ValueError("paired samples must be the same length")
-        differences = [x - y for x, y in zip(a, b)]
+        differences = [x - y for x, y in zip(a, b, strict=True)]
     else:
         differences = list(a)
 
@@ -339,8 +339,8 @@ def wilcoxon_signed_rank(a: Sequence[float],
                           + "too few non-zero pairs to test")
 
     ranks, tied = _midranks([abs(d) for d in nonzero])
-    w_plus = sum(r for d, r in zip(nonzero, ranks) if d > 0)
-    w_minus = sum(r for d, r in zip(nonzero, ranks) if d < 0)
+    w_plus = sum(r for d, r in zip(nonzero, ranks, strict=True) if d > 0)
+    w_minus = sum(r for d, r in zip(nonzero, ranks, strict=True) if d < 0)
     statistic = min(w_plus, w_minus)
 
     if not tied and n <= 40:
@@ -402,8 +402,8 @@ def mcnemar_exact(a: Sequence[bool], b: Sequence[bool]) -> TestResult:
     """
     if len(a) != len(b):
         raise ValueError("paired samples must be the same length")
-    only_a = sum(1 for x, y in zip(a, b) if x and not y)
-    only_b = sum(1 for x, y in zip(a, b) if y and not x)
+    only_a = sum(1 for x, y in zip(a, b, strict=True) if x and not y)
+    only_b = sum(1 for x, y in zip(a, b, strict=True) if y and not x)
     discordant = only_a + only_b
     if discordant == 0:
         return TestResult("mcnemar", 0.0, 1.0, 0,
@@ -441,14 +441,22 @@ def interpret_delta(delta: float) -> str:
 
 
 def rank_biserial(a: Sequence[float], b: Sequence[float]) -> float:
-    """Matched-pairs rank-biserial correlation: Wilcoxon's effect size."""
-    differences = [x - y for x, y in zip(a, b)]
+    """Matched-pairs rank-biserial correlation: Wilcoxon's effect size.
+
+    Validates the lengths like every other paired function here. Without the
+    check, `zip` silently truncates to the shorter sequence and the function
+    returns a plausible effect size computed from part of the data - the
+    failure mode this whole module is written to avoid.
+    """
+    if len(a) != len(b):
+        raise ValueError("paired samples must be the same length")
+    differences = [x - y for x, y in zip(a, b, strict=True)]
     nonzero = [d for d in differences if d != 0]
     if not nonzero:
         return 0.0
     ranks, _ = _midranks([abs(d) for d in nonzero])
     total = sum(ranks)
-    positive = sum(r for d, r in zip(nonzero, ranks) if d > 0)
+    positive = sum(r for d, r in zip(nonzero, ranks, strict=True) if d > 0)
     negative = total - positive
     return (positive - negative) / total
 

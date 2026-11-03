@@ -382,7 +382,7 @@ def comparison():
           and len(per_condition) == 4,
           f"{len(per_condition)} conditions x 20 tasks")
     check("no condition errored",
-          all(built.conditions[l].errors == 0 for l in built.conditions),
+          all(item.errors == 0 for item in built.conditions.values()),
           "all runs completed")
 
     comparisons = []

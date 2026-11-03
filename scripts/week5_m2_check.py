@@ -92,7 +92,7 @@ def part_two():
     print("The model is scripted to ALWAYS reject with 'major', on correct code.\n")
     update = ReviewerAgent(MockProvider(always_rejects()),
                            SETTINGS).run(state_for(TEMPERATURE_MAIN))
-    print(f"  model said        : reject / major")
+    print("  model said        : reject / major")
     print(f"  checks            : {update['tests_passed']} passed, "
           f"{update['tests_failed']} failed")
     print(f"  severity after    : {update['severity']}")

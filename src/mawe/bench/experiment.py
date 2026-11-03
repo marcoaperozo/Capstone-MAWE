@@ -14,9 +14,10 @@ from analysis means a sweep can be re-analysed without being re-run.
 from __future__ import annotations
 
 import dataclasses
+import inspect
 import json
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence
 
 from ..config import Settings
@@ -99,6 +100,23 @@ FREE = Pricing()
 
 
 # ------------------------------------------------------------------ one run
+def _accepts(function: Any, parameter: str) -> bool:
+    """Does `function` take a keyword argument of this name?
+
+    True for anything with `**kwargs`, since that will accept it.
+    """
+    try:
+        signature = inspect.signature(function)
+    except (TypeError, ValueError):          # builtins, C functions
+        return False
+    for name, item in signature.parameters.items():
+        if item.kind is inspect.Parameter.VAR_KEYWORD:
+            return True
+        if name == parameter:
+            return True
+    return False
+
+
 def run_one(condition: str, runner: Any, task: BenchTask, repetition: int = 1,
             *, max_iterations: Optional[int] = None,
             pricing: Pricing = FREE,
@@ -118,24 +136,21 @@ def run_one(condition: str, runner: Any, task: BenchTask, repetition: int = 1,
     kwargs: Dict[str, Any] = {"language": task.language}
     if max_iterations is not None:
         kwargs["max_iterations"] = max_iterations
-    if benchmark_task_id is not None:
-        try:
-            kwargs["benchmark_task_id"] = benchmark_task_id
-        except Exception:                                  # pragma: no cover
-            pass
+    # Only the baselines take `benchmark_task_id`; the Engine does not.
+    # This used to be discovered by calling and catching TypeError, which was
+    # wrong in a way that would have been very hard to see: a genuine
+    # TypeError raised *inside* a condition's own code looked identical to
+    # "this runner has a different signature", so the sweep silently retried
+    # and, if the retry happened to work, recorded a clean row for a run that
+    # had hit a real bug. Asking the signature is deterministic and swallows
+    # nothing.
+    if benchmark_task_id is not None and _accepts(runner.run,
+                                                  "benchmark_task_id"):
+        kwargs["benchmark_task_id"] = benchmark_task_id
 
     started = time.time()
     try:
         result = runner.run(task.prompt, **kwargs)
-    except TypeError:
-        # the Engine does not take benchmark_task_id; retry without it
-        kwargs.pop("benchmark_task_id", None)
-        try:
-            result = runner.run(task.prompt, **kwargs)
-        except Exception as exc:
-            row.error = f"{type(exc).__name__}: {exc}"
-            row.latency_s = round(time.time() - started, 3)
-            return row
     except Exception as exc:
         row.error = f"{type(exc).__name__}: {exc}"
         row.latency_s = round(time.time() - started, 3)

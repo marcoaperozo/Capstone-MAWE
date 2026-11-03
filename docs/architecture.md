@@ -34,6 +34,13 @@ Phase 4 tests.
 | Sandbox | `mawe.sandbox` | Executes generated code with time, output and path limits |
 | Checks | `mawe.agents.checks` | Executable acceptance checks the Reviewer runs |
 | Web | `mawe.web` | Optional FastAPI front end over the same engine |
+| Benchmark | `mawe.bench` | 20 tasks with hidden tests, the scoring harness, and the experiment runner |
+| Baselines | `mawe.baselines` | Conditions A and B: one model, with and without self-refinement |
+| Analysis | `mawe.bench.stats`, `mawe.bench.report` | Intervals, paired tests, Holm correction, comparison tables |
+
+`mawe.bench` may import the engine; nothing the engine uses to build a prompt
+may import `mawe.bench`, or a hidden test could reach a model. That one-way
+dependency is asserted in `tests/test_benchmark.py`.
 
 ## 3. The state graph
 
@@ -191,9 +198,14 @@ Eleven tables; full column definitions in the proposal, section 7. Key points:
 
 Generated code is never executed in the host process. `mawe.sandbox.runner`
 runs it as a subprocess with a wall-clock timeout, captured stdout/stderr, a
-working directory confined to a temp dir, and output truncation. Docker with no
-network is the Phase 2 hardening target; the subprocess runner is the portable
-fallback so CI works without a Docker daemon.
+working directory confined to a temp dir, and output truncation.
+
+Docker with no network was the stated hardening target and is **not
+implemented** — every execution goes through the subprocess path, which is why
+each result reports `isolation: "subprocess"`. `docker_available()` only
+probes for a daemon; nothing runs inside one. This is a resource limit and a
+containment boundary, not a security boundary: generated code runs with the
+privileges of the user who started the engine.
 
 ## 11. Testing strategy
 
@@ -201,10 +213,17 @@ fallback so CI works without a Docker daemon.
 |---|---|---|
 | Unit | routing rules, loop prevention, parsing, token accounting, DB writes | none |
 | Integration | full `plan → develop → review` pipeline | mock |
-| End-to-end | real generation quality | real API, run manually before milestones |
+| Benchmark | whether delivered code passes hidden tests | none (scoring runs the code) |
+| End-to-end | real generation quality | real API — **never run** |
 
-CI (`.github/workflows/ci.yml`) runs unit + integration on every push. No API key
-is required, so the suite is free and deterministic.
+CI (`.github/workflows/ci.yml`) runs everything except the last row on every
+push. No API key is required, so the suite is free and deterministic.
+
+The last row is the project's main gap and is recorded here rather than
+implied: the Anthropic and OpenAI adapters are written but have never executed
+against a live API, so they are untested code. Every measurement the project
+reports comes from the mock provider, the benchmark fixture, or the
+deterministic policy and memory simulations.
 
 ## 12. Build order
 
@@ -213,4 +232,8 @@ is required, so the suite is free and deterministic.
 | 1. Setup & prototyping | 1–2 | Repo, CI, schema, pipeline on the graph (M1) | done |
 | 2. Role implementation | 3–5 | PM, Developer, Reviewer agents and hand-offs (M2) | done |
 | 3. Memory & state | 6–8 | Loop hardening, summarisation, integration, web UI (M3) | done — v1.0 |
-| 4. Testing & evaluation | 9–12 | Benchmark suite, baselines, final report (M4) | next |
+| 4. Testing & evaluation | 9–12 | Benchmark suite, baselines, final report (M4) | done — M4 |
+
+H4 (termination) and H5 (compression) are answered by measurement. H1–H3
+need a real model and are marked *not yet testable*; see
+[`docs/reports/FINAL-REPORT.md`](reports/FINAL-REPORT.md).

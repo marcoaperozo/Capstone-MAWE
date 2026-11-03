@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, Sequence
 
 from sqlalchemy import select as sa_select
 

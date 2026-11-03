@@ -105,7 +105,7 @@ def test_agent_error_routes_to_finalize_rather_than_hanging():
 # ------------------------------------------------------- the headline claim
 def test_every_reachable_state_terminates():
     """Exhaustive sweep: no combination of review outcomes loops forever."""
-    for iteration in range(0, 8):
+    for iteration in range(8):
         for severity in ("critical", "major", "minor", None):
             for verdict in ("approve", "reject"):
                 for repeated in (True, False):

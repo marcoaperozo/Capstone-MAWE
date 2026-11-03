@@ -25,14 +25,20 @@ tests prove.
 
 ## 2. What to run, in order
 
-### A. Prove the whole thing works — 427 tests, ~60 seconds
+### A. Prove the whole thing works — the full suite, about a minute
 
 ```bash
 pytest -q
 ```
 
 This is the strongest single thing you can show. No API key, no network, no
-cost. If he wants detail:
+cost. The count it prints is the count; this guide deliberately does not
+repeat it, because a hand-maintained number drifts from the suite and this
+one already did, three times. The current figure lives in
+[`docs/reports/FINAL-REPORT.md`](reports/FINAL-REPORT.md), which is generated
+from measurements.
+
+If he wants detail:
 
 ```bash
 pytest -v
@@ -159,28 +165,44 @@ that is not yours.
 | Layer | Module | What it does | State |
 |---|---|---|---|
 | Orchestration | `mawe/graph/` | LangGraph state machine; nodes are agent steps, edges are routing rules | working |
-| Safety | `graph/workflow.py` | Four independent termination mechanisms | working, exhaustively tested |
-| Agents | `mawe/agents/` | PM, Developer, Reviewer with typed output contracts | PM + Dev complete; Reviewer thin |
-| LLM access | `mawe/llm/` | Provider protocol + mock, Anthropic, OpenAI | mock complete; real adapters written, untested against live APIs |
+| Safety | `graph/policy.py` | Six exits, routed and reported by one policy function | working, exhaustively tested |
+| Agents | `mawe/agents/` | PM, Developer, Reviewer with typed output contracts | all three complete; the Reviewer is grounded in sandbox execution |
+| LLM access | `mawe/llm/` | Provider protocol + mock, Anthropic, OpenAI | mock complete; real adapters written, **never run against a live API** |
 | Persistence | `mawe/db/` | 11 SQLAlchemy tables, SQLite → PostgreSQL | working |
-| Sandbox | `mawe/sandbox/` | Subprocess execution with timeout and path containment | working; Docker is Phase 2 |
-| Memory | — | Context summarisation | **not built — Weeks 6–8** |
-| Evaluation | — | Benchmark suite, baselines | **not built — Weeks 9–12** |
+| Sandbox | `mawe/sandbox/` | Subprocess execution with timeout and path containment | working; Docker never implemented |
+| Memory | `mawe/memory.py` | Context summarisation under a token budget | working — 93.7% reduction at 80 iterations |
+| Benchmark | `mawe/bench/` | 20 tasks, hidden tests, scoring, experiment runner | working; validated against its own references |
+| Baselines | `mawe/baselines.py` | Conditions A and B for the comparison | working |
+| Analysis | `bench/stats.py`, `bench/report.py` | Intervals, paired tests, comparison tables | working; checked against SciPy |
 
-### The four termination mechanisms
+### The six ways a run ends
 
-1. **Hard iteration cap** — default 5, configurable.
-2. **Severity threshold** — only `critical` and `major` block approval. A
-   reviewer that nitpicks formatting cannot stall the loop.
-3. **No-progress detection** — SHA-256 of the Developer's output. If the same
-   code comes back twice, the Developer is not responding to feedback and the
-   loop exits.
-4. **Fallback routing** — exiting without approval does not fail the run; it
-   finalizes the best version with a warnings report.
+Approval, plus the five mechanisms that bound the loop when approval
+never comes.
 
-`tests/test_loop_prevention.py` sweeps 8 iteration counts × 4 severities ×
-2 verdicts × repeated/changed code and asserts that no reachable state loops
-forever.
+Every run exits with exactly one reason, and `graph/policy.py` decides the
+route and the reason in the same function so the two cannot disagree.
+
+1. **Approved** — the review passed.
+2. **Iteration cap** — the configured maximum, default 5.
+3. **No progress** — SHA-256 of the Developer's output matches the previous
+   iteration, so the Developer is not responding to feedback.
+4. **Oscillation** — the code returns to a version already seen (A→B→A),
+   which consecutive-repeat detection alone does not catch.
+5. **Repeated issues** — the reviewer refiles the same complaint, compared by
+   a normalised fingerprint rather than by exact string.
+6. **Error** — an agent failed irrecoverably.
+
+Two more mechanisms shape the loop without ending it. The **severity
+threshold** means only `critical` and `major` block approval, so a reviewer
+that nitpicks formatting cannot stall the run; and **fallback routing** means
+exiting without approval still delivers the best version with a warnings
+report rather than failing.
+
+`tests/test_loop_prevention.py` and `tests/test_loop_policy.py` cover these
+exhaustively, and `scripts/week6_loop_stress.py` drives 100,000 randomised
+adversarial sequences through the policy — none fail to terminate and none
+exceed their cap.
 
 ---
 

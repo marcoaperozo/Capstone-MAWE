@@ -36,7 +36,7 @@ from mawe.llm import (
     solo_script,
 )
 
-FAST = dict(max_iterations=5, sandbox_timeout_s=0)
+FAST = {"max_iterations": 5, "sandbox_timeout_s": 0}
 
 
 def settings(**kw):
@@ -352,6 +352,57 @@ def test_a_condition_that_raises_becomes_a_failed_row():
     assert "boom" in row.error
     assert not row.success
     assert row.hidden_tests_total == 0
+
+
+def test_a_type_error_inside_a_condition_is_not_silently_retried():
+    """Capability detection must not swallow a real bug.
+
+    `benchmark_task_id` is accepted by the baselines and not by the Engine.
+    That used to be discovered by calling and catching TypeError, which meant
+    a genuine TypeError from inside a condition looked exactly like a
+    signature mismatch: the sweep retried, and if the retry happened to work
+    it recorded a clean row for a run that had hit a real bug.
+    """
+    calls = []
+
+    class BuggyRunner:
+        def run(self, prompt, *, language="python", **kw):
+            calls.append(kw)
+            raise TypeError("a real bug inside the condition")
+
+    row = run_one("C", BuggyRunner(), get("fizzbuzz"), benchmark_task_id=1)
+    assert len(calls) == 1, "the condition must be called exactly once"
+    assert "TypeError" in row.error
+    assert "a real bug inside the condition" in row.error
+    assert not row.success
+
+
+def test_the_task_id_is_passed_only_to_runners_that_take_it():
+    from mawe.bench.experiment import _accepts
+
+    assert _accepts(SingleModel.run, "benchmark_task_id")
+    assert _accepts(SelfRefine.run, "benchmark_task_id")
+    assert not _accepts(Engine.run, "benchmark_task_id")
+
+    seen = {}
+
+    class Picky:
+        def run(self, prompt, *, language="python"):
+            seen["kwargs_ok"] = True
+            raise RuntimeError("stop here")
+
+    run_one("C", Picky(), get("fizzbuzz"), benchmark_task_id=7)
+    assert seen.get("kwargs_ok"), "a runner without the parameter was "         "called with it anyway"
+
+
+def test_a_runner_with_kwargs_is_given_the_task_id():
+    from mawe.bench.experiment import _accepts
+
+    class Flexible:
+        def run(self, prompt, **kw):
+            pass
+
+    assert _accepts(Flexible.run, "benchmark_task_id")
 
 
 def test_run_condition_covers_every_task_and_repetition():

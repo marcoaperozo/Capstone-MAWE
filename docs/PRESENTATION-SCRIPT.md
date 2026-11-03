@@ -45,7 +45,8 @@ Point at the diagram, top to bottom:
 > "Here's the pipeline. A prompt comes in — 'build a snake game'.
 > The **PM agent** turns it into a structured spec with acceptance criteria.
 > The **Developer agent** writes the actual Python or JavaScript against that spec.
-> The **Reviewer agent** runs the code and its tests inside a Docker sandbox."
+> The **Reviewer agent** actually runs the code in a sandboxed subprocess
+> and checks the output against the spec."
 
 Point at the **red arrow**:
 

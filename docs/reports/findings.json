@@ -1,13 +1,14 @@
 {
   "engine_version": "1.0.0",
   "tests": {
-    "total": 427,
-    "modules": 13,
+    "total": 445,
+    "modules": 14,
     "per_module": {
-      "tests/test_baselines.py": 42,
+      "tests/test_baselines.py": 45,
       "tests/test_benchmark.py": 51,
       "tests/test_db.py": 7,
       "tests/test_developer_agent.py": 27,
+      "tests/test_docs_consistency.py": 11,
       "tests/test_integration.py": 20,
       "tests/test_loop_policy.py": 65,
       "tests/test_loop_prevention.py": 19,
@@ -15,7 +16,7 @@
       "tests/test_pm_agent.py": 33,
       "tests/test_reviewer_agent.py": 30,
       "tests/test_sandbox.py": 25,
-      "tests/test_stats.py": 74,
+      "tests/test_stats.py": 78,
       "tests/test_workflow.py": 13
     }
   },
@@ -266,6 +267,6 @@
   },
   "answered": 2,
   "quick": false,
-  "generated_at": "2026-11-02T23:17:20",
-  "elapsed_s": 98.5
+  "generated_at": "2026-11-02T23:57:32",
+  "elapsed_s": 128.2
 }

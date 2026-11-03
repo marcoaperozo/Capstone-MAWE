@@ -26,7 +26,8 @@ FINDINGS = os.path.join(HERE, "findings.json")
 
 if not os.path.exists(FINDINGS):
     sys.exit("findings.json is missing; run scripts/week12_final_check.py")
-F = json.load(open(FINDINGS, encoding="utf-8"))
+with open(FINDINGS, encoding="utf-8") as _handle:
+    F = json.load(_handle)
 
 BENCH = F["benchmark"]
 TESTS = F["tests"]

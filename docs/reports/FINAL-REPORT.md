@@ -6,7 +6,7 @@ Capstone project · Department of Computer Science · Southwest Minnesota State 
 
 Marco Perozo · Gabriel Marte · Lewdy Aquino · Alvin Almonte
 
-Engine v1.0.0 · 427 automated tests · figures generated 2026-11-02
+Engine v1.0.0 · 445 automated tests · figures generated 2026-11-02
 
 > Every figure in this report is generated from `docs/reports/findings.json`, which
 > `scripts/week12_final_check.py` writes from live measurements. Nothing here is
@@ -27,7 +27,7 @@ model**, and what that costs.
 
 The honest summary at the end of twelve weeks:
 
-- The **engine works** and is tested: 427 automated tests across 13 modules, green on Python 3.11, 3.12 and 3.13.
+- The **engine works** and is tested: 445 automated tests across 14 modules, green on Python 3.11, 3.12 and 3.13.
 - The two hypotheses that **do not need a language model** — termination and context
   compression — are **answered by measurement**.
 - The three that **do** need one — correctness, specification coverage, cost per
@@ -276,4 +276,4 @@ In order of what each buys:
 
 ---
 
-*Generated from `findings.json` (2026-11-02T23:17:20) by `docs/reports/build_final_report.py`.*
+*Generated from `findings.json` (2026-11-02T23:57:32) by `docs/reports/build_final_report.py`.*

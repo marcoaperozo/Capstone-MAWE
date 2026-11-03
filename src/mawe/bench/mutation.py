@@ -26,17 +26,17 @@ is not expected to be 100%.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import re
 import subprocess
-import sys
 import tempfile
 from dataclasses import dataclass, field
-from typing import Dict, Iterator, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 from .harness import score
 from .solutions import SOURCES, files_for
-from .tasks import BY_SLUG, TASKS, BenchTask
+from .tasks import TASKS, BenchTask
 
 #: (name, pattern, replacement).  Each is a defect a careless implementation
 #: would plausibly contain, not a random character edit: off-by-one bounds,
@@ -130,10 +130,8 @@ def _parses(source: str, language: str) -> bool:
     except (OSError, subprocess.SubprocessError):
         return False
     finally:
-        try:
+        with contextlib.suppress(OSError):
             os.unlink(path)
-        except OSError:
-            pass
 
 
 def _strip_strings(source: str, language: str) -> List[Tuple[int, int]]:
