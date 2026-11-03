@@ -191,6 +191,10 @@ class MockProvider:
             ("you are the product manager", "product_manager"),
             ("you are the developer", "developer"),
             ("you are the code reviewer", "reviewer"),
+            # the Phase 4 baselines: one model with no colleagues, and that
+            # same model judging its own work
+            ("you are an expert programmer working alone", "solo"),
+            ("you are reviewing your own code", "self_critic"),
         ):
             if phrase in head:
                 return role
@@ -257,4 +261,47 @@ def oscillating_developer_script() -> Dict[str, List[str]]:
         "reviewer": [_review_payload(
             "reject", "major", [f"still not right (round {i})"], 3, 2)
             for i in range(1, 7)],
+    }
+
+
+# ---------------------------------------------------- Phase 4 baseline scripts
+def _critique_payload(done, issues=()):
+    return json.dumps({"done": bool(done), "issues": list(issues)})
+
+
+def solo_script(code: str = _CODE_V2, path: str = "src/main.py"):
+    """Condition A: one model, one answer."""
+    return {"solo": [_files_payload(code, path)]}
+
+
+def self_refine_script(code_versions=None, approve_at: int = 2,
+                       path: str = "src/main.py"):
+    """Condition B: writes, criticises itself, revises, then declares done.
+
+    `approve_at` is the 1-based iteration whose critique says "done", so
+    `approve_at=2` is the behaviour the Week 5 temperature scenario exercises
+    for the engine: one wrong attempt, one correction, finished.
+    """
+    versions = list(code_versions or (_CODE_V1, _CODE_V2))
+    critiques = []
+    for i in range(1, max(approve_at, 1) + 1):
+        if i < approve_at:
+            critiques.append(_critique_payload(
+                False, [f"iteration {i}: the program does not handle every "
+                        f"case the request describes"]))
+        else:
+            critiques.append(_critique_payload(True))
+    return {
+        "solo": [_files_payload(c, path) for c in versions],
+        "self_critic": critiques,
+    }
+
+
+def never_satisfied_script(path: str = "src/main.py"):
+    """Condition B that always finds fault -> runs to the iteration cap."""
+    return {
+        "solo": [_files_payload(_CODE_V1, path),
+                 _files_payload(_CODE_V2, path)],
+        "self_critic": [_critique_payload(
+            False, ["still not right; the edge cases are wrong"])],
     }

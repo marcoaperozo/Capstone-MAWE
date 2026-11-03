@@ -55,6 +55,7 @@ python scripts/week6_loop_stress.py  # 100,000 adversarial runs, all terminate
 python scripts/week7_memory_check.py # context stays inside the token budget
 python scripts/week8_m3_check.py     # M3: every layer still works together
 python scripts/week9_bench_check.py  # the 20-task benchmark is a valid instrument
+python scripts/week10_baseline_check.py  # the four-condition comparison runs
 ```
 
 Optional web UI:
@@ -71,7 +72,7 @@ uvicorn mawe.web.app:app --reload
 | 1. Setup & prototyping | 1–2 | Repo, CI, database schema, two-agent pipeline on a LangGraph state graph | **done** |
 | 2. Role implementation | 3–5 | Product Manager, Developer and Reviewer agents with typed hand-offs | **done** |
 | 3. Memory & state | 6–8 | Loop hardening, context summarisation, integration tests, web UI | **done — engine v1.0 (M3)** |
-| 4. Testing & evaluation | 9–12 | Benchmark suite, single-model baseline, final report | in progress — week 9 done |
+| 4. Testing & evaluation | 9–12 | Benchmark suite, single-model baseline, final report | in progress — weeks 9–10 done |
 
 ## Layout
 
@@ -87,6 +88,7 @@ src/mawe/
   sandbox/           subprocess runner for generated code
   agents/checks.py   executable acceptance checks the Reviewer runs
   bench/             Phase 4: 20 benchmark tasks, hidden tests, scoring
+  baselines.py       conditions A and B: one model, with and without retries
   web/               optional FastAPI front end
   cli.py             command-line entry point
 tests/               unit + integration, all against the mock provider
@@ -145,6 +147,37 @@ so deleting an input guard left the tests green — the harness now rejects a
 traceback where the task asked for an error message. The same pass found
 untested boundaries in four tasks, which is why the suite has 181 tests and not
 169.
+
+## The four conditions
+
+The research question is comparative, so the engine is measured against
+controls rather than on its own:
+
+| | condition | what it is |
+|---|---|---|
+| A | single model | one call, no iteration, no review |
+| B | self-refinement | one model that critiques and revises its own code |
+| C | multi-agent engine | Product Manager, Developer, Reviewer |
+| C' | ablation | the engine with context summarisation switched off |
+
+B is the control that matters. Without it, "multi-agent beats one call" could
+just be "more attempts beat one attempt". B iterates with the same cap and the
+same model, so any advantage C shows over B is not simply persistence.
+
+One confound is worth stating plainly: C differs from B in **two** ways, role
+separation and sandbox-grounded review, so a gain over B cannot be attributed
+to either one by this design alone. Giving B the sandbox would stop it
+isolating iteration, so the confound is reported rather than removed.
+
+Everything outside the conditions is shared deliberately — same provider, same
+temperature, same iteration cap, same file parser, same token accounting, same
+hidden-test scoring. The baselines get none of the engine's machinery: no
+specification, no executable checks, no sandbox evidence, and no loop
+prevention, so B burns its whole budget on a model that never settles.
+
+`scripts/week10_baseline_check.py` validates the comparison against a fixture
+whose answers are known in advance, which is the only way to tell "the models
+did badly" from "the plumbing is broken" before spending on real API calls.
 
 ## Why a mock provider
 

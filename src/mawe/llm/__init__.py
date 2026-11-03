@@ -6,7 +6,8 @@ from typing import Optional
 
 from .base import LLMProvider, LLMResponse, ProviderError, estimate_tokens
 from .mock import (
-    MockProvider, oscillating_developer_script, picky_reviewer_script,
+    MockProvider, never_satisfied_script, oscillating_developer_script,
+    picky_reviewer_script, self_refine_script, solo_script,
     stuck_developer_script, varied_reviewer_script,
 )
 
@@ -15,6 +16,7 @@ __all__ = [
     "MockProvider", "get_provider",
     "stuck_developer_script", "picky_reviewer_script",
     "varied_reviewer_script", "oscillating_developer_script",
+    "solo_script", "self_refine_script", "never_satisfied_script",
 ]
 
 
