@@ -28,7 +28,7 @@ tests prove.
 ### A. Prove the whole thing works — the full suite, about a minute
 
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
 This is the strongest single thing you can show. No API key, no network, no
@@ -41,7 +41,7 @@ from measurements.
 If he wants detail:
 
 ```bash
-pytest -v
+python -m pytest -v
 ```
 
 ### B. Watch the pipeline run live
@@ -253,7 +253,7 @@ exceed their cap.
 ```bash
 pip install -r requirements.txt
 pip install -e .
-pytest -q
+python -m pytest -q
 ```
 
 If `python -m mawe.cli` says "No module named mawe", you skipped

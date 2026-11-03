@@ -32,7 +32,7 @@ git clone <this repo>
 cd MAWE-Capstone
 pip install -r requirements.txt
 pip install -e .
-pytest
+python -m pytest
 ```
 
 The test suite runs against a mock provider, so **no API key is needed** and it

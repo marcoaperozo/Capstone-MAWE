@@ -40,7 +40,7 @@ Open a terminal in the project folder and run this once, so nothing is
 downloading or compiling while he watches:
 
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
 It should end with a line saying everything passed. If it does, you are ready.
@@ -61,7 +61,7 @@ is the one to run if he asks how any of this was tested without an API key.
 ### A. The tests — start here
 
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
 **Say:** "The whole project is covered by automated tests, and they run on
@@ -236,7 +236,7 @@ understand what your own experiment can and cannot support.*
 
 | Problem | Fix |
 |---|---|
-| `pytest` not found | `pip install -r requirements.txt` then `pip install -e .` |
+| `pytest` not found | Use `python -m pytest`. The `pytest.exe` shim lands in a Scripts folder that is usually not on PATH |
 | A JavaScript task is skipped | Node isn't installed. Harmless — the 12 Python tasks still run |
 | A script seems to hang | The benchmark runs real subprocesses; week 9 takes ~2 min. Use `--quick` |
 | Something fails on the day | Show `docs/reports/FINAL-REPORT.pdf` and the green CI history instead. The measurements are recorded there and the Actions tab proves they ran |

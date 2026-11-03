@@ -147,7 +147,7 @@ from anywhere in the folder. You only do this once per machine.
 ### Check it worked
 
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
 It should finish in about a minute with a line saying everything passed,
@@ -266,7 +266,7 @@ laptop.
 
 | Command | What it proves | Time |
 |---|---|---|
-| `pytest -q` | everything works | ~1 min |
+| `python -m pytest -q` | everything works | ~1 min |
 | `python scripts/how_we_test.py` | how it is tested with no API key | 20 s |
 | `python scripts/week6_loop_stress.py` | the loop always terminates | ~2 s |
 | `python scripts/week7_memory_check.py` | the context stays bounded | ~5 s |
@@ -309,7 +309,7 @@ than asserted.
 |---|---|
 | `python` not recognised | Python isn't installed or isn't on PATH. Reinstall and tick "Add Python to PATH" |
 | `No module named mawe` | You skipped `pip install -e .`, or you are in the wrong folder |
-| `pytest` not recognised | `pip install -r requirements.txt` |
+| `pytest` not recognised | Use `python -m pytest` instead. pip installs `pytest.exe` into a Scripts folder that is often not on PATH; the module form always works |
 | JavaScript tasks skipped | Node isn't installed. Harmless — the 12 Python tasks still run |
 | A script seems stuck | The benchmark runs real programs; week 9 takes ~2 minutes. Add `--quick` |
 | 27 tests skipped | Correct. Those compare our statistics against SciPy, which is optional |
