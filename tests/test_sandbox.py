@@ -122,3 +122,64 @@ def test_stdin_is_delivered_to_the_program():
     result = run_files(py("import sys\nprint(sys.stdin.read().upper())\n"),
                        "python", timeout_s=10, stdin="hello")
     assert result["stdout"].strip() == "HELLO"
+
+
+# --------------------------------------------- Sandbox: one project, many runs
+def test_a_sandbox_runs_the_same_project_many_times():
+    """Week 9 added this so the benchmark does not re-write a project once per
+    hidden test; the point is that repeated runs see the same files."""
+    from mawe.sandbox.runner import Sandbox
+
+    source = "import sys\nprint(len(sys.argv) - 1)\n"
+    with Sandbox(py(source), language="python", timeout_s=10) as box:
+        assert box.usable
+        first = box.run(argv=["a"])
+        second = box.run(argv=["a", "b", "c"])
+    assert first["stdout"].strip() == "1"
+    assert second["stdout"].strip() == "3"
+
+
+def test_a_sandbox_run_is_isolated_from_the_previous_one():
+    """Each invocation is a fresh process, so state must not carry over."""
+    from mawe.sandbox.runner import Sandbox
+
+    source = ("import os\n"
+              "print(os.path.exists('marker'))\n"
+              "open('marker', 'w').close()\n")
+    with Sandbox(py(source), language="python", timeout_s=10) as box:
+        first = box.run()
+        second = box.run()
+    # the file persists in the directory, but the interpreter state does not
+    assert first["stdout"].strip() == "False"
+    assert second["stdout"].strip() == "True"
+
+
+def test_an_unusable_sandbox_reports_instead_of_raising():
+    from mawe.sandbox.runner import Sandbox
+
+    with Sandbox([], language="python") as box:
+        assert not box.usable
+        assert "no files" in (box.setup_error or "")
+        result = box.run()
+    assert result["exit_code"] is None
+    assert "no files" in result["stderr"]
+
+
+def test_a_sandbox_directory_is_removed_on_exit():
+    import os
+
+    from mawe.sandbox.runner import Sandbox
+
+    with Sandbox(py("print(1)\n"), language="python") as box:
+        directory = box.directory
+        assert directory and os.path.isdir(directory)
+    assert not os.path.isdir(directory)
+
+
+def test_a_per_run_timeout_overrides_the_sandbox_default():
+    from mawe.sandbox.runner import Sandbox
+
+    with Sandbox(py("while True:\n    pass\n"), language="python",
+                 timeout_s=30) as box:
+        result = box.run(timeout_s=2)
+    assert result["timed_out"]

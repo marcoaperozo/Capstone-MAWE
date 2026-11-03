@@ -54,6 +54,7 @@ python scripts/week5_m2_check.py     # the reviewer cannot be talked out of a fa
 python scripts/week6_loop_stress.py  # 100,000 adversarial runs, all terminate
 python scripts/week7_memory_check.py # context stays inside the token budget
 python scripts/week8_m3_check.py     # M3: every layer still works together
+python scripts/week9_bench_check.py  # the 20-task benchmark is a valid instrument
 ```
 
 Optional web UI:
@@ -70,7 +71,7 @@ uvicorn mawe.web.app:app --reload
 | 1. Setup & prototyping | 1–2 | Repo, CI, database schema, two-agent pipeline on a LangGraph state graph | **done** |
 | 2. Role implementation | 3–5 | Product Manager, Developer and Reviewer agents with typed hand-offs | **done** |
 | 3. Memory & state | 6–8 | Loop hardening, context summarisation, integration tests, web UI | **done — engine v1.0 (M3)** |
-| 4. Testing & evaluation | 9–12 | Benchmark suite, single-model baseline, final report | next |
+| 4. Testing & evaluation | 9–12 | Benchmark suite, single-model baseline, final report | in progress — week 9 done |
 
 ## Layout
 
@@ -85,6 +86,7 @@ src/mawe/
   memory.py          context compression under a token budget
   sandbox/           subprocess runner for generated code
   agents/checks.py   executable acceptance checks the Reviewer runs
+  bench/             Phase 4: 20 benchmark tasks, hidden tests, scoring
   web/               optional FastAPI front end
   cli.py             command-line entry point
 tests/               unit + integration, all against the mock provider
@@ -120,6 +122,29 @@ measurement disagree, the measurement wins:
   stall the loop;
 - that downgrade is **withheld** when some criteria have no check, because a
   criterion nobody tested can still be genuinely unmet.
+
+## How the benchmark is validated
+
+Phase 4 compares the engine against single-model baselines on 20 tasks — 7 easy,
+8 medium, 5 hard, across Python and JavaScript — each with hidden tests that no
+agent ever sees. Scoring is therefore independent of the LLM reviewer: a run can
+be approved by the Reviewer and still score zero.
+
+That only means something if the benchmark itself is sound, so three properties
+are measured rather than asserted (`scripts/week9_bench_check.py`):
+
+- **solvable** — a reference solution for every task passes all 181 hidden tests;
+- **non-vacuous** — a program that starts and does nothing succeeds on 0 of 20
+  tasks, passing only the 5 empty-input cases it genuinely satisfies;
+- **discriminating** — single defects injected into the reference solutions are
+  caught 91.4% of the time (mutation score, survivors itemised).
+
+Mutation testing found two real weaknesses while it was being built. Error-path
+tests all asserted "exit status 1", which an uncaught exception also produces,
+so deleting an input guard left the tests green — the harness now rejects a
+traceback where the task asked for an error message. The same pass found
+untested boundaries in four tasks, which is why the suite has 181 tests and not
+169.
 
 ## Why a mock provider
 

@@ -103,19 +103,34 @@ def parse_checks(raw: Any) -> List[AcceptanceCheck]:
     return checks
 
 
-def _stdout_matches(check: AcceptanceCheck, actual: str) -> bool:
-    if check.expect_stdout is None:
+def stdout_matches(expected: Optional[str], actual: str,
+                   match: str = "exact") -> bool:
+    """Compare captured stdout against an expectation.
+
+    One definition, used by both the Reviewer's acceptance checks and the
+    Phase 4 benchmark harness.  Two copies of this would be two copies that
+    drift, and a benchmark that grades slightly differently from the engine's
+    own checks would quietly invalidate the comparison.
+
+    Both sides are stripped, so a missing or extra trailing newline is not a
+    failure; differences *inside* the output still are.
+    """
+    if expected is None:
         return True
-    expected = check.expect_stdout.strip()
+    want = expected.strip()
     got = actual.strip()
-    if check.match == "contains":
-        return expected in got
-    if check.match == "regex":
+    if match == "contains":
+        return want in got
+    if match == "regex":
         try:
-            return re.search(expected, got, re.MULTILINE) is not None
+            return re.search(want, got, re.MULTILINE) is not None
         except re.error:
             return False
-    return got == expected
+    return got == want
+
+
+def _stdout_matches(check: AcceptanceCheck, actual: str) -> bool:
+    return stdout_matches(check.expect_stdout, actual, check.match)
 
 
 def run_check(files: List[Dict[str, str]], check: AcceptanceCheck,
