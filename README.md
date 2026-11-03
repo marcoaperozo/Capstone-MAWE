@@ -56,6 +56,7 @@ python scripts/week7_memory_check.py # context stays inside the token budget
 python scripts/week8_m3_check.py     # M3: every layer still works together
 python scripts/week9_bench_check.py  # the 20-task benchmark is a valid instrument
 python scripts/week10_baseline_check.py  # the four-condition comparison runs
+python scripts/week11_experiment.py      # the full sweep, with statistics
 ```
 
 Optional web UI:
@@ -72,7 +73,7 @@ uvicorn mawe.web.app:app --reload
 | 1. Setup & prototyping | 1–2 | Repo, CI, database schema, two-agent pipeline on a LangGraph state graph | **done** |
 | 2. Role implementation | 3–5 | Product Manager, Developer and Reviewer agents with typed hand-offs | **done** |
 | 3. Memory & state | 6–8 | Loop hardening, context summarisation, integration tests, web UI | **done — engine v1.0 (M3)** |
-| 4. Testing & evaluation | 9–12 | Benchmark suite, single-model baseline, final report | in progress — weeks 9–10 done |
+| 4. Testing & evaluation | 9–12 | Benchmark suite, single-model baseline, final report | in progress — weeks 9–11 done |
 
 ## Layout
 
@@ -89,6 +90,8 @@ src/mawe/
   agents/checks.py   executable acceptance checks the Reviewer runs
   bench/             Phase 4: 20 benchmark tasks, hidden tests, scoring
   baselines.py       conditions A and B: one model, with and without retries
+  bench/stats.py     the statistics, in the standard library
+  bench/report.py    sweeps -> tables, intervals and paired tests
   web/               optional FastAPI front end
   cli.py             command-line entry point
 tests/               unit + integration, all against the mock provider
@@ -178,6 +181,36 @@ prevention, so B burns its whole budget on a model that never settles.
 `scripts/week10_baseline_check.py` validates the comparison against a fixture
 whose answers are known in advance, which is the only way to tell "the models
 did badly" from "the plumbing is broken" before spending on real API calls.
+
+## How the results are analysed
+
+Two choices here are methodological rather than technical, and both are easy
+to get wrong in a way that produces a confident number instead of an error.
+
+**The unit of analysis is the task, not the run.** A sweep of 20 tasks with 3
+repetitions produces 60 rows per condition, and running the paired tests over
+all 60 would treat three runs of one task as three independent observations.
+That trebles n and shrinks every interval by about 1.7 for free. Repetitions
+are averaged within a task first; they measure *stability*, which is reported
+separately, and a task counts as solved when it succeeded in more than half of
+its repetitions.
+
+**The test follows the metric.** The proposal says "paired t-test or Wilcoxon
+signed-rank", which is right for tokens and pass rate and wrong for the
+headline. Task success is binary, so nearly every paired difference is zero,
+and the signed-rank test discards zeros — with 20 tasks and 3 disagreements it
+computes a p-value from n = 3 while looking like a 20-task result. For paired
+binary outcomes the correct test is McNemar's, exactly, on the discordant
+pairs, and that is what the report uses. It also makes the real sample size
+visible instead of implied.
+
+Several comparisons come out of one sweep (C vs A, C vs B, B vs A, C vs C'), so
+p-values are Holm-corrected. Effect sizes are reported alongside, because at
+n = 20 a significant difference can still be a tiny one.
+
+The statistics are implemented in the standard library and checked against
+SciPy in `tests/test_stats.py` on any machine that has it — so CI stays light
+and the implementations are verified rather than assumed.
 
 ## Why a mock provider
 
