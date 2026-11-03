@@ -32,6 +32,7 @@ HAND_WRITTEN = [
     "docs/architecture.md",
     "docs/results/README.md",
     "docs/SHOW-YOUR-PROFESSOR.md",
+    "docs/HOW-IT-WORKS.md",
 ]
 
 #: Generated from measurements; allowed to quote any figure.

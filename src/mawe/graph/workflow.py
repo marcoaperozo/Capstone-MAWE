@@ -129,7 +129,15 @@ def build_graph(ctx: EngineContext):
         # the files came from develop, the verdict from here
         record = MemoryManager.record_from_state({**state, **update})
         update["history"] = list(state.get("history", [])) + [record]
-        ctx.emit("review", update)
+        # The review event carries the iteration it belongs to. Subscribers
+        # used to infer it from the run's code artifacts, which was wrong:
+        # the repository sets `run_id` directly rather than appending to the
+        # relationship, so an already-loaded collection is stale and every
+        # review after the first was filed against iteration 1. The number
+        # is known here, so it is sent rather than guessed. It is attached to
+        # a copy because `update` is the graph's state delta, and putting
+        # `iteration` in it would overwrite the counter the Developer owns.
+        ctx.emit("review", {**update, "iteration": state.get("iteration", 0)})
         return update
 
     def finalize(state: WorkflowState) -> dict:

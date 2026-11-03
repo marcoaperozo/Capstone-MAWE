@@ -182,8 +182,15 @@ class _Recorder:
                     before=before, after=after)
 
         elif kind == "review":
-            iteration = self.run.code_artifacts[-1].iteration if \
-                self.run.code_artifacts else 1
+            # The graph sends the iteration; the fallback is only for events
+            # replayed from somewhere that does not. Reading it back off
+            # `run.code_artifacts` was the original bug - that collection can
+            # be stale, so every review after the first was recorded against
+            # iteration 1.
+            iteration = int(payload.get("iteration") or 0)
+            if not iteration:
+                iteration = (self.run.code_artifacts[-1].iteration
+                             if self.run.code_artifacts else 1)
             feedback = "\n".join(payload.get("issues", [])) or "(no issues)"
             self.repo.add_review(
                 self.run, iteration,

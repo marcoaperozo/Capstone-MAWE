@@ -253,4 +253,5 @@ against real APIs with hidden tests.
 - [`docs/poster/`](docs/poster) — URC conference poster (48×36)
 - [`docs/reports/FINAL-REPORT.md`](docs/reports/FINAL-REPORT.md) — the final report, generated from measured figures
 - [`docs/reports/ABSTRACT.md`](docs/reports/ABSTRACT.md) — the conference abstract, in three lengths
+- [`docs/HOW-IT-WORKS.md`](docs/HOW-IT-WORKS.md) — how the system works, and how to set it up and run it
 - [`docs/SHOW-YOUR-PROFESSOR.md`](docs/SHOW-YOUR-PROFESSOR.md) — a runbook for demonstrating the project

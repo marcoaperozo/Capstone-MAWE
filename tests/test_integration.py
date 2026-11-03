@@ -88,6 +88,47 @@ def test_every_termination_path_survives_the_full_stack(script, expected):
         assert run.finished_at is not None
 
 
+def test_each_review_is_recorded_against_its_own_iteration():
+    """The audit trail has to say which attempt a review judged.
+
+    This was wrong: the recorder inferred the iteration from
+    `run.code_artifacts[-1]`, but the repository sets `run_id` directly
+    instead of appending to the relationship, so an already-loaded collection
+    was stale and every review after the first was filed against iteration 1.
+    The run still finished correctly, which is why it went unnoticed - only
+    the record of it was wrong, and the record is what the project offers as
+    evidence that a run is traceable.
+    """
+    engine = engine_for(temperature_repair_script(), sandbox_timeout_s=15)
+    result = engine.run("Build a command-line temperature converter")
+
+    with session_scope(engine.db) as session:
+        run = session.get(Run, result.run_id)
+        artifacts = sorted(a.iteration for a in run.code_artifacts)
+        reviews = sorted(r.iteration for r in run.reviews)
+        reviewer_said = sorted(m.iteration for m in run.messages
+                               if m.sender_role == "reviewer")
+
+    assert artifacts == [1, 2]
+    assert reviews == [1, 2], f"reviews filed against {reviews}"
+    assert reviewer_said == [1, 2], f"reviewer messages at {reviewer_said}"
+
+
+def test_the_whole_audit_trail_is_consistent_for_a_long_run():
+    """Every review and reviewer message pairs with a real iteration."""
+    engine = engine_for(varied_reviewer_script(), max_iterations=4,
+                        sandbox_timeout_s=0)
+    result = engine.run("build something")
+
+    with session_scope(engine.db) as session:
+        run = session.get(Run, result.run_id)
+        iterations = {a.iteration for a in run.code_artifacts}
+        assert iterations == set(range(1, result.iterations + 1))
+        assert {r.iteration for r in run.reviews} == iterations
+        assert len(run.reviews) == len({r.iteration for r in run.reviews}), \
+            "two reviews recorded against the same iteration"
+
+
 def test_a_run_that_fails_still_returns_the_best_code():
     engine = engine_for(varied_reviewer_script(), sandbox_timeout_s=0)
     result = engine.run("build something")
