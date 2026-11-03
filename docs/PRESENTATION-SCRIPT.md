@@ -1,4 +1,8 @@
-# MAWE Poster — Presentation Script
+# MAWE Poster — Presentation Script (September 22, 2026 — historical)
+
+> This is the script for the September poster demonstration, when the project
+> was at Week 1. For the finished project use
+> [FINAL-PRESENTATION-SCRIPT.md](FINAL-PRESENTATION-SCRIPT.md).
 
 **Marco Perozo · Poster Production Demonstration · Tuesday, September 22, 2026**
 
