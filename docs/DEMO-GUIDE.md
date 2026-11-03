@@ -25,7 +25,7 @@ tests prove.
 
 ## 2. What to run, in order
 
-### A. Prove the whole thing works — 255 tests, ~10 seconds
+### A. Prove the whole thing works — 427 tests, ~60 seconds
 
 ```bash
 pytest -q
@@ -81,6 +81,47 @@ python scripts/week3_spec_check.py
 5 sample prompts across Python and JavaScript, three difficulty levels.
 5/5 valid; 5/5 recovered when the first model answer deliberately breaks the
 contract.
+
+### F. Prove the benchmark is worth trusting — Phase 4
+
+```bash
+python scripts/week9_bench_check.py
+```
+
+This is the strongest thing to show after the test suite, because it is the
+project grading its own measuring instrument. 20 tasks with 181 hidden tests
+that no agent ever sees, and three properties measured rather than claimed:
+every task is solvable (a reference solution passes all of its hidden tests),
+no task is satisfied by a program that does nothing, and injected defects are
+caught 91.4% of the time.
+
+Takes about two minutes — the mutation sweep is the slow part. Add `--quick`
+to skip it.
+
+### G. Prove the comparison can detect a difference
+
+```bash
+python scripts/week11_experiment.py --tasks fizzbuzz palindrome json-query
+```
+
+Runs all four conditions — A single model, B self-refinement, C the engine,
+C' the ablation — and prints the comparison table with confidence intervals
+and paired tests.
+
+**Say this out loud when showing it:** the provider is a fixture with known
+answers, not a model. It shows the pipeline works end to end. It says nothing
+about any model's ability, and the script prints that reminder itself.
+
+### H. The final report
+
+```bash
+python scripts/week12_final_check.py
+```
+
+The M4 gate. Re-measures everything and writes `docs/reports/findings.json`,
+which the final report and deck are generated from. Finishes with the
+hypothesis scorecard: H4 and H5 supported, H1–H3 marked *not yet testable*
+because no model has been run.
 
 ---
 
