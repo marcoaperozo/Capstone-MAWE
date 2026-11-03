@@ -252,3 +252,5 @@ against real APIs with hidden tests.
 - [`docs/MAWE-CONTEXT.md`](docs/MAWE-CONTEXT.md) — full proposal content
 - [`docs/poster/`](docs/poster) — URC conference poster (48×36)
 - [`docs/reports/FINAL-REPORT.md`](docs/reports/FINAL-REPORT.md) — the final report, generated from measured figures
+- [`docs/reports/ABSTRACT.md`](docs/reports/ABSTRACT.md) — the conference abstract, in three lengths
+- [`docs/SHOW-YOUR-PROFESSOR.md`](docs/SHOW-YOUR-PROFESSOR.md) — a runbook for demonstrating the project

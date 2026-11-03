@@ -89,12 +89,16 @@ def add_header(text, col, y, width=COLW, x=None):
 
 def est_height(lines, width_in):
     h = 0.10
-    for txt, sz, bold, bullet, col in lines:
+    for txt, sz, bold, bullet, _col in lines:
         if not txt:
             h += sz / 72.0 * 0.5
             continue
         eff = width_in - (0.34 if bullet else 0.0)
-        cpl = max(12, int(eff / (0.425 * sz / 72.0)))
+        # Bold glyphs are wider, so a bold paragraph wraps onto more lines
+        # than the same text in regular weight. Using one average width for
+        # both under-counts bold lines, and the box is then drawn too short:
+        # the ER-diagram summary was clipped mid-line because of it.
+        cpl = max(12, int(eff / ((0.455 if bold else 0.425) * sz / 72.0)))
         h += math.ceil(len(txt) / cpl) * (sz / 72.0 * 1.22) + 0.075
     return h + 0.16
 
@@ -411,18 +415,22 @@ y[2] = add_body([
 ], 2, y[2], fill=LBLUE)
 
 y[2] = section('Implementation Status', [
-    ('Stack. Python 3.11+ \u00b7 LangGraph \u00b7 OpenAI / Anthropic / Google API SDKs '
-     '\u00b7 Docker sandbox with no network and CPU, memory and time limits \u00b7 pytest '
-     'and Jest \u00b7 SQLAlchemy over SQLite \u2192 PostgreSQL \u00b7 FastAPI \u00b7 '
-     'Git and GitHub Actions. No GPU is required: all models run in the cloud via API.', S),
+    ('Stack. Python 3.11+ \u00b7 LangGraph \u00b7 Anthropic / OpenAI API SDKs '
+     '\u00b7 subprocess sandbox with a wall-clock timeout, path containment and output '
+     'truncation \u00b7 pytest \u00b7 SQLAlchemy over SQLite \u2192 PostgreSQL \u00b7 '
+     'FastAPI \u00b7 Git and GitHub Actions. No GPU is required.', S),
+    ('', 6),
+    ('Docker with no network was the stated hardening target and is not implemented. '
+     'Every execution goes through the subprocess path, which is a resource limit and a '
+     'containment boundary rather than a security boundary.', S),
 ], 2, y[2])
 
 y[2] = add_table([
     ['Phase', 'Weeks', 'Milestone', 'Status'],
-    ['1. Setup & prototyping', '1\u20132', 'M1 pipeline running', 'M1 met'],
-    ['2. Role implementation', '3\u20135', 'M2 full PM/Dev/QA loop', 'Planned'],
-    ['3. Memory & state', '6\u20138', 'M3 engine v1.0', 'Planned'],
-    ['4. Testing & evaluation', '9\u201312', 'M4 benchmark + report', 'Planned'],
+    ['1. Setup & prototyping', '1\u20132', 'M1 pipeline running', 'Met'],
+    ['2. Role implementation', '3\u20135', 'M2 full PM/Dev/QA loop', 'Met'],
+    ['3. Memory & state', '6\u20138', 'M3 engine v1.0', 'Met'],
+    ['4. Testing & evaluation', '9\u201312', 'M4 benchmark + report', 'Met'],
 ], 2, y[2], widths=[1.35, 0.55, 1.35, 0.8], size=21)
 
 y[2] = section('Experimental Evaluation', [
@@ -439,8 +447,10 @@ y[2] = section('Experimental Evaluation', [
     ('', 6),
     ('Benchmark. \u2265 20 Python and JavaScript tasks with hidden tests the agents never '
      'see \u2014 7 easy, 8 medium, 5 hard. Three repetitions per task per condition '
-     '(\u2248 240 runs) to account for LLM non-determinism; means reported with 95% '
-     'confidence intervals and tested with a paired t-test or Wilcoxon signed-rank test.', S),
+     '(240 runs) to account for LLM non-determinism; means reported with 95% confidence '
+     'intervals. The test follows the metric: Wilcoxon signed-rank for tokens and pass rate, '
+     'and McNemar\u2019s exact test for task success, which is binary and would otherwise be '
+     'computed from a far smaller sample than it appears to use.', S),
     ('', 6),
     ('Metrics. Hidden-test pass rate, task success rate, specification coverage, '
      'iterations used, total tokens, estimated cost, latency, termination reason and '
@@ -449,52 +459,56 @@ y[2] = section('Experimental Evaluation', [
 
 
 # ============================== COLUMN 4 ==============================
-y[3] = add_header('Preliminary Results', 3, y[3])
+y[3] = add_header('Results', 3, y[3])
 y[3] = add_body([
-    ('Milestone M1 (Week 2). The engine runs end to end against a scripted mock LLM, so '
-     'the orchestration, loop-prevention and persistence layers can be measured with no '
-     'API cost and with repeatable results. These numbers characterise the ENGINE, not '
-     'model quality; code-quality benchmarks against real LLMs run in Phase 4.', XS),
+    ('All four milestones met: 445 automated tests, green on Python 3.11, 3.12 and '
+     '3.13. The two hypotheses that need no language model are answered by measurement; '
+     'the three that need one are not.', XS),
 ], 3, y[3])
 
 y[3] = add_table([
-    ['Scenario', 'Iter.', 'Termination', 'Tokens', 'Calls'],
-    ['Reject, reject, approve', '2', 'approved', '1,002', '6'],
-    ['Developer returns identical code', '2', 'no_progress', '863', '5'],
-    ['Reviewer never approves', '5', 'iteration_cap', '2,099', '12'],
-], 3, y[3], widths=[2.1, 0.5, 1.15, 0.7, 0.5], size=19)
+    ['Hypothesis', 'Result'],
+    ['H4  every run terminates', 'Supported'],
+    ['H5  summarisation cuts context by 40%+', 'Supported'],
+    ['H1-H3  correctness, coverage, cost', 'Needs a model'],
+], 3, y[3], widths=[3.2, 1.3], size=20)
 
 y[3] = add_body([
-    ('3 / 3 runs terminated — no hang, no manual stop. All three exit paths fire: '
-     'severity threshold, code-hash no-progress detection and the hard iteration cap. '
-     '20 messages, 3 specifications, 9 code artifacts and 8 reviews persisted to SQLite '
-     'and queryable per run.', XS, True, False, NAVY),
+    ('H4. 100,000 randomised adversarial review sequences across four policy '
+     'configurations: 0 failed to terminate and 0 exceeded a cap. '
+     'H5. Context at 80 iterations falls from 52,494 to '
+     '3,316 tokens, a 93.7% reduction that never exceeds '
+     'the budget, with C and C\u2032 solving the same tasks.', XS, True, False, NAVY),
 ], 3, y[3], fill=LBLUE)
 
 y[3] = add_table([
-    ['Phase 4 template', 'Pass rate', 'Task success', 'Cost / success'],
-    ['A — Single model', '—', '—', '—'],
-    ['B — Self-refinement', '—', '—', '—'],
-    ['C — MAWE', '—', '—', '—'],
-    ['C′ — No summarization', '—', '—', '—'],
-], 3, y[3], widths=[1.6, 0.85, 0.95, 1.0], size=19)
+    ['Pipeline check (fixture, NOT a model)', 'Solved', 'Pass rate'],
+    ['A \u2014 Single model', '0 / 20', '57%'],
+    ['B \u2014 Self-refinement', '20 / 20', '100%'],
+    ['C \u2014 MAWE', '20 / 20', '100%'],
+    ['C\u2032 \u2014 No summarization', '20 / 20', '100%'],
+], 3, y[3], widths=[2.6, 0.9, 0.9], size=19)
+
+y[3] = add_body([
+    ('A fixture with known answers, not a model: it shows the comparison detects a '
+     'difference it was built to detect, and says nothing about model ability.', XS),
+], 3, y[3])
 
 y[3] = section('Discussion & Conclusions', [
-    ('MAWE is expected to improve correctness and requirement coverage, most visibly on '
-     'medium and hard tasks where a single prompt tends to miss requirements or ship '
-     'untested bugs. The price is higher token usage and latency, since each iteration '
-     'adds at least two model calls. The question is therefore not \u201cis it better?\u201d '
-     'but \u201cis the improvement worth the cost?\u201d \u2014 which cost per successful '
-     'task answers directly.', S),
+    ('Settled. The loop provably terminates and the context stays bounded. The '
+     'benchmark is validated as an instrument: every task is solvable, no task is '
+     'satisfied by a do-nothing program, and injected defects are caught 91.4% of '
+     'the time.', S),
     ('', 6),
-    ('Condition B isolates iteration from role separation. If C still wins, that is '
-     'evidence that an independent reviewer is worth more than a model checking its own '
-     'work \u2014 the same reason real teams separate development from QA.', S),
+    ('Not settled. Whether role separation produces more correct software, and whether it '
+     'is worth the cost, need a sweep against a real model. The apparatus is complete; '
+     'what is missing is an API key, not code.', S),
     ('', 6),
-    ('Limitations. The Reviewer is itself an LLM and can approve incorrect code, which is '
-     'why scoring uses hidden tests instead of its verdict; tasks are small to medium, so '
-     'conclusions may not transfer to large multi-module systems; results depend on the '
-     'model family; and the budget limits repetitions to three per task.', S),
+    ('Limitations. Scoring uses hidden tests rather than the Reviewer\u2019s verdict, '
+     'since the Reviewer is itself an LLM; tasks are small to medium; results will '
+     'depend on the model family; and C differs from B in two ways at once, role '
+     'separation and grounded review, so a gain over B cannot be attributed to '
+     'either alone.', S),
 ], 3, y[3])
 
 y[3] = section('References', [
@@ -522,9 +536,9 @@ y[3] = section('References', [
 ], 3, y[3])
 
 y[3] = section('Acknowledgements', [
-    ('We thank Dr. Hezy for supervising this capstone project and for feedback on the '
-     'proposal and evaluation design, and the maintainers of the LangGraph and CrewAI '
-     'open-source projects whose tooling this work builds on.', S),
+    ('We thank Dr. Hezy for supervising this capstone and for feedback on the proposal '
+     'and evaluation design, and the maintainers of LangGraph, whose tooling this work '
+     'builds on.', S),
 ], 3, y[3])
 
 prs.save(OUT)
@@ -535,7 +549,6 @@ import re as _re, os as _os, zipfile as _zipfile
 
 def _clean_rels(path):
     from lxml import etree as _et
-    RNS = "http://schemas.openxmlformats.org/package/2006/relationships"
     zin = _zipfile.ZipFile(path)
     parts = [(i.filename, zin.read(i.filename)) for i in zin.infolist()]
     zin.close()

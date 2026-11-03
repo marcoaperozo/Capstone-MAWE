@@ -31,10 +31,11 @@ HAND_WRITTEN = [
     "docs/DEMO-GUIDE.md",
     "docs/architecture.md",
     "docs/results/README.md",
+    "docs/SHOW-YOUR-PROFESSOR.md",
 ]
 
 #: Generated from measurements; allowed to quote any figure.
-GENERATED = ["docs/reports/FINAL-REPORT.md"]
+GENERATED = ["docs/reports/FINAL-REPORT.md", "docs/reports/ABSTRACT.md"]
 
 #: A verbatim record of the original proposal, and a script for a talk that
 #: was already given. Neither describes the code as it stands now.
@@ -173,3 +174,59 @@ def test_no_live_doc_still_calls_a_finished_phase_unbuilt():
             assert not context.strip().startswith("|"), (
                 f"{name}:{line} still marks a delivered phase as pending: "
                 f"{context.strip()[:90]!r}")
+
+
+# ================================================= headline figures
+def test_the_generated_documents_quote_the_current_figures(findings):
+    """Catches a document that was not regenerated after the numbers moved.
+
+    An earlier version of this test tried to find every percentage in every
+    document and validate it. That was the wrong tool: it could not tell a
+    measured result from a target, so it flagged H5's "at least 40%"
+    threshold as a stale measurement, and its number regex split "91.4%" into
+    "1.4%". Prose cannot be parsed reliably, so this checks the one thing
+    that can be: the generated documents must contain the current figures
+    somewhere.
+    """
+    mutation = findings["benchmark"]["mutation_score"] * 100
+    reduction = findings["compression"]["best_reduction"] * 100
+
+    expected = {
+        "docs/reports/FINAL-REPORT.md": [
+            f"{mutation:.1f}%", f"{reduction:.1f}%",
+            f"{findings['tests']['total']} automated tests",
+        ],
+        "docs/reports/ABSTRACT.md": [
+            f"{mutation:.0f}%", f"{reduction:.0f}%",
+            f"{findings['benchmark']['hidden_tests']} hidden tests",
+        ],
+    }
+    for name, figures in expected.items():
+        text = read(name)
+        missing = [f for f in figures if f not in text]
+        assert not missing, (
+            f"{name} is missing {missing}; regenerate it from findings.json")
+
+
+# ================================================= the demo runbook
+def test_every_script_the_runbook_names_exists():
+    """A demo that opens with a missing file is the worst possible start."""
+    runbook = read("docs/SHOW-YOUR-PROFESSOR.md")
+    named = set(re.findall(r"python (scripts/\S+?\.py)", runbook))
+    assert named, "the runbook should name at least one script"
+    missing = [name for name in named if not (ROOT / name).exists()]
+    assert not missing, f"the runbook calls scripts that do not exist: {missing}"
+
+
+def test_the_runbook_names_the_gap_up_front():
+    """The one thing the presenter has to say before being asked."""
+    runbook = read("docs/SHOW-YOUR-PROFESSOR.md")
+    opening = runbook[:runbook.index("## 1.")].lower()
+    assert "real" in opening and "model" in opening, \
+        "the runbook must state the live-model gap in its opening section"
+
+
+def test_the_runbook_files_it_hands_over_exist():
+    runbook = read("docs/SHOW-YOUR-PROFESSOR.md")
+    for path in re.findall(r"`(docs/[\w./-]+\.(?:pdf|md))`", runbook):
+        assert (ROOT / path).exists(), f"the runbook offers {path}, missing"
