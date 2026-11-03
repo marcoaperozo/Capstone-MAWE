@@ -55,7 +55,8 @@ Have these open in tabs:
 
 ## 2. The demo, in order
 
-Five commands. You do not need all five — **A and B alone make the case.**
+Six commands. You do not need all six — **A and B alone make the case**, and E
+is the one to run if he asks how any of this was tested without an API key.
 
 ### A. The tests — start here
 
@@ -117,7 +118,20 @@ them."
 **Why this matters:** most student projects assert their benchmark is good.
 This one measures it.
 
-### E. The full comparison
+### E. How any of this is tested with no API key
+
+Keep this one in your back pocket. Run it the moment he asks.
+
+```bash
+python scripts/how_we_test.py
+```
+
+It demonstrates, rather than claims: the single-method interface the engine
+talks to, a real program executed in a subprocess with an off-by-one error
+caught by running it, a termination guarantee that *only* a scripted provider
+can test, and a closing section stating what none of it proves.
+
+### F. The full comparison
 
 ```bash
 python scripts/week11_experiment.py --tasks fizzbuzz palindrome json-query
@@ -158,11 +172,42 @@ The script prints that warning itself, so you are not relying on memory.
 > without changing the outcome. Those two don't need a model. The three that
 > compare correctness and cost do."
 
-**"Why a mock model? Isn't that avoiding the hard part?"**
-> "It's how we test properties a real model can't be made to show on demand.
-> Proving the no-progress exit fires needs the Developer to return identical
-> code twice; no real model will do that reliably. Model quality is measured
-> separately, against real APIs with hidden tests."
+**"How did you test it worked, and how is that possible with no API key?"**
+
+*The question most likely to decide how this goes. Answer with the
+distinction, then run the script.*
+
+> "Testing the machinery around a model and testing the quality of a model are
+> two different jobs. The first needs no API key. The second does, and we
+> haven't done it.
+>
+> Every agent talks to one interface with a single method. A real provider
+> implements it by calling Anthropic; our mock implements it by replaying a
+> scripted answer. The engine has no test mode and never imports the mock, so
+> it genuinely cannot tell the difference — swapping to a real model is one
+> environment variable.
+>
+> And the generated code is real. It's written to disk and executed in a
+> subprocess, and we compare the actual bytes of its output against what the
+> specification demanded. That part involves no API at all."
+
+Then show him:
+
+```bash
+python scripts/how_we_test.py
+```
+
+Twenty seconds, four parts: the interface, a real program being run with an
+off-by-one error caught by execution, a guarantee only a scripted provider
+can test, and a plain statement of what none of it proves.
+
+**"Isn't using a mock avoiding the hard part?"**
+> "It's the opposite — some things can *only* be tested this way. Proving the
+> no-progress exit fires needs the Developer to return byte-identical code
+> twice. No real model will do that reliably; they're non-deterministic by
+> design. Same for the reviewer that never approves, and code that cycles A to
+> B and back. Those are the adversarial cases a safety guarantee depends on,
+> and a real model won't produce them on demand."
 
 **"How do you know your benchmark is any good?"**
 > "We measured it. Every task has a reference solution that passes all its
