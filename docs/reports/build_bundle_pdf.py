@@ -171,6 +171,18 @@ def main() -> int:
 
     print(f"wrote {OUT}  ({pages} pages, "
           f"{OUT.stat().st_size / 1_000_000:.1f} MB)")
+
+    # Each document also on its own, because a bundle is for reading and a
+    # single file is what you attach to an email.
+    for title, relative in SECTIONS:
+        source = ROOT / relative
+        single = HERE / (source.stem + ".pdf")
+        if single.resolve() == (HERE / "FINAL-REPORT.pdf").resolve():
+            continue          # that name already belongs to the slide deck
+        writer = pymupdf.DocumentWriter(str(single))
+        count = render_markdown(writer, to_html(source))
+        writer.close()
+        print(f"wrote {single.name}  ({count} pages)")
     return 0
 
 
