@@ -57,6 +57,7 @@ python scripts/week8_m3_check.py     # M3: every layer still works together
 python scripts/week9_bench_check.py  # the 20-task benchmark is a valid instrument
 python scripts/week10_baseline_check.py  # the four-condition comparison runs
 python scripts/week11_experiment.py      # the full sweep, with statistics
+python scripts/week12_final_check.py     # M4: the final gate, and the report's figures
 ```
 
 Optional web UI:
@@ -73,7 +74,7 @@ uvicorn mawe.web.app:app --reload
 | 1. Setup & prototyping | 1–2 | Repo, CI, database schema, two-agent pipeline on a LangGraph state graph | **done** |
 | 2. Role implementation | 3–5 | Product Manager, Developer and Reviewer agents with typed hand-offs | **done** |
 | 3. Memory & state | 6–8 | Loop hardening, context summarisation, integration tests, web UI | **done — engine v1.0 (M3)** |
-| 4. Testing & evaluation | 9–12 | Benchmark suite, single-model baseline, final report | in progress — weeks 9–11 done |
+| 4. Testing & evaluation | 9–12 | Benchmark suite, single-model baseline, final report | done — M4 |
 
 ## Layout
 
@@ -212,6 +213,29 @@ The statistics are implemented in the standard library and checked against
 SciPy in `tests/test_stats.py` on any machine that has it — so CI stays light
 and the implementations are verified rather than assumed.
 
+## Where the project ended up
+
+| | hypothesis | verdict |
+|---|---|---|
+| H4 | every run terminates; under 10% exit by cap | **supported** |
+| H5 | summarisation cuts context ≥40% without changing outcomes | **supported** |
+| H1 | role separation produces more correct software | **not yet testable** |
+| H2 | role separation produces better spec coverage | **not yet testable** |
+| H3 | the improvement is worth its cost per success | **not yet testable** |
+
+H1–H3 need a real API key. The instrument that answers them is built and
+validated — the benchmark, the baselines, the scoring, the statistics — but no
+sweep against a model has been run, and the Anthropic and OpenAI adapters have
+never executed against a live API. That is the project's main limitation and
+the first thing [`docs/reports/FINAL-REPORT.md`](docs/reports/FINAL-REPORT.md)
+says.
+
+Every figure in the report and its deck is generated from
+`docs/reports/findings.json`, which `scripts/week12_final_check.py` writes from
+live measurements. Nothing is typed in. That rule exists because a Week 8 deck
+once claimed 273 passing tests when the suite had 255: the figure had been
+copied from a terminal and the suite moved underneath it.
+
 ## Why a mock provider
 
 It is not a shortcut around real testing — it is how we test properties a real
@@ -227,3 +251,4 @@ against real APIs with hidden tests.
 - [`docs/architecture.md`](docs/architecture.md) — layers, state graph, agent contracts, loop prevention
 - [`docs/MAWE-CONTEXT.md`](docs/MAWE-CONTEXT.md) — full proposal content
 - [`docs/poster/`](docs/poster) — URC conference poster (48×36)
+- [`docs/reports/FINAL-REPORT.md`](docs/reports/FINAL-REPORT.md) — the final report, generated from measured figures

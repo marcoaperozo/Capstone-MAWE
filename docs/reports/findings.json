@@ -1,0 +1,271 @@
+{
+  "engine_version": "1.0.0",
+  "tests": {
+    "total": 427,
+    "modules": 13,
+    "per_module": {
+      "tests/test_baselines.py": 42,
+      "tests/test_benchmark.py": 51,
+      "tests/test_db.py": 7,
+      "tests/test_developer_agent.py": 27,
+      "tests/test_integration.py": 20,
+      "tests/test_loop_policy.py": 65,
+      "tests/test_loop_prevention.py": 19,
+      "tests/test_memory.py": 21,
+      "tests/test_pm_agent.py": 33,
+      "tests/test_reviewer_agent.py": 30,
+      "tests/test_sandbox.py": 25,
+      "tests/test_stats.py": 74,
+      "tests/test_workflow.py": 13
+    }
+  },
+  "benchmark": {
+    "tasks": 20,
+    "hidden_tests": 181,
+    "easy": 7,
+    "medium": 8,
+    "hard": 5,
+    "python": 12,
+    "javascript": 8,
+    "references_passing": 20,
+    "stub_tasks_solved": 0,
+    "stub_tests_passed": 5,
+    "stub_tests_total": 181,
+    "mutation_score": 0.9142857142857143
+  },
+  "termination": {
+    "runs": 100000,
+    "non_terminating": 0,
+    "over_cap": 0,
+    "cap_exit_share": 0.12305,
+    "default_cap_share": 0.0002,
+    "per_configuration": {
+      "default, cap 5": {
+        "runs": 25000,
+        "cap_share": 0.0002,
+        "worst": 5,
+        "cap": 5
+      },
+      "cap 1": {
+        "runs": 25000,
+        "cap_share": 0.47028,
+        "worst": 1,
+        "cap": 1
+      },
+      "cap 20": {
+        "runs": 25000,
+        "cap_share": 0.0,
+        "worst": 8,
+        "cap": 20
+      },
+      "detectors off, cap 5": {
+        "runs": 25000,
+        "cap_share": 0.02172,
+        "worst": 5,
+        "cap": 5
+      }
+    },
+    "configurations": 4,
+    "default_distribution": {
+      "approved": 20307,
+      "no_progress": 4096,
+      "error": 389,
+      "oscillation": 199,
+      "iteration_cap": 5,
+      "repeated_issues": 4
+    }
+  },
+  "compression": {
+    "budget": 4000,
+    "ladder": {
+      "1": {
+        "uncompressed": 637,
+        "compressed": 637,
+        "reduction": 0.0
+      },
+      "2": {
+        "uncompressed": 1293,
+        "compressed": 688,
+        "reduction": 0.4679040989945862
+      },
+      "5": {
+        "uncompressed": 3260,
+        "compressed": 787,
+        "reduction": 0.7585889570552147
+      },
+      "10": {
+        "uncompressed": 6539,
+        "compressed": 954,
+        "reduction": 0.8541061324361523
+      },
+      "20": {
+        "uncompressed": 13104,
+        "compressed": 1291,
+        "reduction": 0.901480463980464
+      },
+      "40": {
+        "uncompressed": 26234,
+        "compressed": 1966,
+        "reduction": 0.925059083631928
+      },
+      "80": {
+        "uncompressed": 52494,
+        "compressed": 3316,
+        "reduction": 0.9368308759096278
+      }
+    },
+    "best_reduction": 0.9368308759096278,
+    "largest_context": 3316
+  },
+  "comparison": {
+    "source": "fixture-sweep.json",
+    "measures_a_model": false,
+    "provider": "oracle",
+    "model": "oracle-1",
+    "repetitions": 3,
+    "conditions": {
+      "A": {
+        "solved": 0,
+        "tasks": 20,
+        "success_rate": 0.0,
+        "success_ci": [
+          0.0,
+          0.1611251580528194
+        ],
+        "pass_rate": 0.57409035,
+        "tokens": 574.8,
+        "iterations": 1.0,
+        "cost_per_success": null,
+        "unstable_tasks": []
+      },
+      "B": {
+        "solved": 20,
+        "tasks": 20,
+        "success_rate": 1.0,
+        "success_ci": [
+          0.8388748419471804,
+          0.9999999999999999
+        ],
+        "pass_rate": 1.0,
+        "tokens": 2548.15,
+        "iterations": 2.0,
+        "cost_per_success": 0.0,
+        "unstable_tasks": []
+      },
+      "C": {
+        "solved": 20,
+        "tasks": 20,
+        "success_rate": 1.0,
+        "success_ci": [
+          0.8388748419471804,
+          0.9999999999999999
+        ],
+        "pass_rate": 1.0,
+        "tokens": 4093.05,
+        "iterations": 2.0,
+        "cost_per_success": 0.0,
+        "unstable_tasks": []
+      },
+      "C'": {
+        "solved": 20,
+        "tasks": 20,
+        "success_rate": 1.0,
+        "success_ci": [
+          0.8388748419471804,
+          0.9999999999999999
+        ],
+        "pass_rate": 1.0,
+        "tokens": 4093.05,
+        "iterations": 2.0,
+        "cost_per_success": 0.0,
+        "unstable_tasks": []
+      }
+    },
+    "success_comparisons": [
+      {
+        "left": "C",
+        "right": "A",
+        "metric": "success",
+        "n": 20,
+        "p": 1.9073486328125e-06,
+        "p_adjusted": 7.62939453125e-06,
+        "reject": true,
+        "effect": 1.0,
+        "effect_label": "large",
+        "detail": "20 only-first, 0 only-second, 20 pairs"
+      },
+      {
+        "left": "C",
+        "right": "B",
+        "metric": "success",
+        "n": 0,
+        "p": 1.0,
+        "p_adjusted": 1.0,
+        "reject": false,
+        "effect": 0.0,
+        "effect_label": "negligible",
+        "detail": "the two conditions succeeded on exactly the same tasks"
+      },
+      {
+        "left": "B",
+        "right": "A",
+        "metric": "success",
+        "n": 20,
+        "p": 1.9073486328125e-06,
+        "p_adjusted": 7.62939453125e-06,
+        "reject": true,
+        "effect": 1.0,
+        "effect_label": "large",
+        "detail": "20 only-first, 0 only-second, 20 pairs"
+      },
+      {
+        "left": "C",
+        "right": "C'",
+        "metric": "success",
+        "n": 0,
+        "p": 1.0,
+        "p_adjusted": 1.0,
+        "reject": false,
+        "effect": 0.0,
+        "effect_label": "negligible",
+        "detail": "the two conditions succeeded on exactly the same tasks"
+      }
+    ]
+  },
+  "hypotheses": {
+    "H4": {
+      "verdict": "supported",
+      "evidence": "100,000 randomised adversarial sequences, 0 failed to terminate, 0 exceeded a cap",
+      "caveat": "the <10% cap-exit clause is about real runs. Under the default policy the cap accounts for 0.0% of exits because the detectors catch runs earlier, which is consistent with the clause; but adversarial random input is not a model, so the clause is not settled by this",
+      "needs_a_model": false
+    },
+    "H5": {
+      "verdict": "supported",
+      "evidence": "93.7% reduction at 80 iterations, never over budget; C and C' solve the same tasks",
+      "caveat": "the reduction is measured on the engine's own prompts, which is where it applies; 'no pass-rate drop' is confirmed against the fixture, not against a model",
+      "needs_a_model": false
+    },
+    "H1": {
+      "verdict": "not yet testable",
+      "evidence": "the comparison runs, and detects a quality difference it was built to detect; no sweep against a real model has been run",
+      "caveat": "needs an API key: the committed sweep is a fixture with known answers and measures the apparatus, not a model",
+      "needs_a_model": true
+    },
+    "H2": {
+      "verdict": "not yet testable",
+      "evidence": "the comparison runs, and detects a quality difference it was built to detect; no sweep against a real model has been run",
+      "caveat": "needs an API key: the committed sweep is a fixture with known answers and measures the apparatus, not a model; specification coverage also has no metric yet - the benchmark scores behaviour, not whether a spec was complete",
+      "needs_a_model": true
+    },
+    "H3": {
+      "verdict": "not yet testable",
+      "evidence": "the comparison runs, and detects a quality difference it was built to detect; no sweep against a real model has been run",
+      "caveat": "needs an API key: the committed sweep is a fixture with known answers and measures the apparatus, not a model",
+      "needs_a_model": true
+    }
+  },
+  "answered": 2,
+  "quick": false,
+  "generated_at": "2026-11-02T23:17:20",
+  "elapsed_s": 98.5
+}
