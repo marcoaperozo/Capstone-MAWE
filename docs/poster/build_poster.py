@@ -463,16 +463,16 @@ y[2] = section('Experimental Evaluation', [
 # ============================== COLUMN 4 ==============================
 y[3] = add_header('Results', 3, y[3])
 y[3] = add_body([
-    ('All four milestones met: 445 automated tests, green on Python 3.11, 3.12 and '
-     '3.13. The two hypotheses that need no language model are answered by measurement; '
-     'the three that need one are not.', XS),
+    ('All four milestones met. The full automated test suite is green on Python 3.11, '
+     '3.12 and 3.13.', XS),
 ], 3, y[3])
 
 y[3] = add_table([
     ['Hypothesis', 'Result'],
     ['H4  every run terminates', 'Supported'],
     ['H5  summarisation cuts context by 40%+', 'Supported'],
-    ['H1-H3  correctness, coverage, cost', 'Needs a model'],
+    ['H1, H3  correctness and cost', 'Needs a live run'],
+    ['H2  specification coverage', 'Needs a metric'],
 ], 3, y[3], widths=[3.2, 1.3], size=20)
 
 y[3] = add_body([
@@ -492,25 +492,25 @@ y[3] = add_table([
 ], 3, y[3], widths=[2.6, 0.9, 0.9], size=19)
 
 y[3] = add_body([
-    ('A fixture with known answers, not a model: it shows the comparison detects a '
-     'difference it was built to detect, and says nothing about model ability.', XS),
+    ('A fixture with known answers: it shows the comparison detects a difference, '
+     'and says nothing about model ability.', XS),
 ], 3, y[3])
 
 y[3] = section('Discussion & Conclusions', [
-    ('Settled. The loop provably terminates and the context stays bounded. The '
-     'benchmark is validated as an instrument: every task is solvable, no task is '
-     'satisfied by a do-nothing program, and injected defects are caught 91.4% of '
-     'the time.', S),
+    ('Settled. The benchmark is validated as an instrument: every task is solvable, '
+     'no task is satisfied by a do-nothing program, and injected defects are caught '
+     '91.4% of the time.', S),
     ('', 6),
-    ('Not settled. Whether role separation produces more correct software, and whether it '
-     'is worth the cost, need a sweep against a real model. The apparatus is complete; '
-     'what is missing is an API key, not code.', S),
+    ('Not settled. Whether role separation produces more correct software, and whether '
+     'it is worth the cost, need a sweep against a live model. The benchmark, the baselines '
+     'and the statistics are built; the API adapters are written but have never been '
+     'run, so that sweep is the remaining work. Specification coverage needs more still: '
+     'a metric this benchmark does not provide.', S),
     ('', 6),
     ('Limitations. Scoring uses hidden tests rather than the Reviewer\u2019s verdict, '
-     'since the Reviewer is itself an LLM; tasks are small to medium; results will '
-     'depend on the model family; and C differs from B in two ways at once, role '
-     'separation and grounded review, so a gain over B cannot be attributed to '
-     'either alone.', S),
+     'since the Reviewer is itself an LLM; tasks are small to medium; and C differs '
+     'from B in two ways at once, role separation and grounded review, so a gain over '
+     'B cannot be attributed to either alone.', S),
 ], 3, y[3])
 
 y[3] = section('References', [
