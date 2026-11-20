@@ -262,7 +262,7 @@ DIAG = [
     ('User prompt', '"Build a snake game"', LBLUE),
     ('PM Agent', 'Structured spec + acceptance criteria', WHITE),
     ('Developer Agent', 'Python / JavaScript source files', WHITE),
-    ('Reviewer Agent', 'Runs code + tests in Docker sandbox', WHITE),
+    ('Reviewer Agent', 'Runs code + checks in a sandboxed subprocess', WHITE),
     ('Finalize', 'Code, spec, review history, metrics', LBLUE),
 ]
 dx, dw = COLX[1] + 0.20, COLW - 1.95
@@ -362,27 +362,29 @@ y[1] = section('Methodology', [
     ('', 8),
     ('Testing strategy. Unit tests for routing, loop-prevention rules, summarization and '
      'database access; integration tests over the full pipeline with a mocked LLM for '
-     'determinism; end-to-end runs with real LLM calls before each milestone.', M),
+     'determinism; benchmark scoring runs the generated programs for real. End-to-end '
+     'runs against a live LLM API are the remaining step and have not been performed.', M),
 ], 1, y[1])
 
 y[1] = section('Loop Prevention & Memory Management', [
     ('The two failure modes that break autonomous agent pipelines are non-termination and '
      'context growth. Both are engineered against explicitly.', M),
     ('', 8),
-    ('Four termination mechanisms', S, True, False, NAVY),
-    ('Hard iteration cap \u2014 configurable, default 5.', M, False, True),
-    ('Severity threshold \u2014 only critical and major issues cause rejection; minor '
-     'issues are reported but do not block approval.', M, False, True),
-    ('No-progress detection \u2014 a SHA-256 hash of the Developer output exits the loop '
-     'when the same code or the same issue list repeats.', M, False, True),
-    ('Fallback routing \u2014 on exit without approval the engine finalizes the best '
-     'version with a warnings report rather than failing.', M, False, True),
+    ('Five ways a run ends without approval', S, True, False, NAVY),
+    ('Iteration cap \u2014 configurable, default 5.', M, False, True),
+    ('No progress \u2014 a SHA-256 hash shows the Developer returned identical code.', M, False, True),
+    ('Oscillation — the code returns to a version already seen (A → B → A).', M, False, True),
+    ('Repeated issues — the Reviewer refiles the same complaint.', M, False, True),
+    ('Error \u2014 an agent fails irrecoverably.', M, False, True),
+    ('', 6),
+    ('Two more shape the loop without ending it: a severity threshold, so only critical '
+     'and major issues block approval, and fallback routing, so an unapproved exit '
+     'still delivers the best version.', M),
     ('', 8),
     ('Memory strategy', S, True, False, NAVY),
-    ('Only the latest spec, latest code and latest review stay in full context; older '
-     'iterations are compressed into a compact progress log stored in memory_summaries, '
-     'while every raw message is still persisted in the database so nothing is lost for '
-     'later analysis.', M),
+    ('Only the latest spec, code and review stay in full context; older iterations '
+     'compress into a progress log in memory_summaries, while every raw message is '
+     'still persisted so nothing is lost.', M),
 ], 1, y[1])
 
 
