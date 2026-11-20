@@ -26,7 +26,9 @@ class OpenAIProvider:
 
         self.name = "openai"
         self.model = model if model and model != "mock-1" else DEFAULT_MODEL
-        self._client = OpenAI(api_key=key)
+        # Same reasoning as the Anthropic backend: a Phase 4 sweep is long
+        # enough that one rate-limit response would otherwise end it partway.
+        self._client = OpenAI(api_key=key, max_retries=8, timeout=600.0)
 
     def complete(self, system: str, user: str, *, temperature: float = 0.2,
                  max_tokens: int = 4096) -> LLMResponse:

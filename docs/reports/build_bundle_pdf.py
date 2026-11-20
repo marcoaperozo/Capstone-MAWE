@@ -12,9 +12,10 @@ Markdown is rendered through PyMuPDF's Story engine, so no external tool
 
 from __future__ import annotations
 
+import contextlib
 import sys
+import tempfile
 from pathlib import Path
-from pathlib import Path as pathlib_Path
 
 import markdown
 import pymupdf
@@ -119,8 +120,7 @@ def main() -> int:
         print("missing inputs:", missing, file=sys.stderr)
         return 2
 
-    import tempfile
-    scratch = pathlib_Path(tempfile.gettempdir()) / "_mawe_bundle_body.pdf"
+    scratch = Path(tempfile.gettempdir()) / "_mawe_bundle_body.pdf"
     writer = pymupdf.DocumentWriter(str(scratch))
 
     render_markdown(writer, cover_html(SECTIONS, APPENDED))
@@ -164,17 +164,15 @@ def main() -> int:
     pages = out.page_count
     out.close()
     body.close()
-    try:                       # PyMuPDF can still hold the handle
+    with contextlib.suppress(OSError):   # PyMuPDF can still hold the handle
         scratch.unlink(missing_ok=True)
-    except OSError:
-        pass
 
     print(f"wrote {OUT}  ({pages} pages, "
           f"{OUT.stat().st_size / 1_000_000:.1f} MB)")
 
     # Each document also on its own, because a bundle is for reading and a
     # single file is what you attach to an email.
-    for title, relative in SECTIONS:
+    for _title, relative in SECTIONS:
         source = ROOT / relative
         single = HERE / (source.stem + ".pdf")
         if single.resolve() == (HERE / "FINAL-REPORT.pdf").resolve():
